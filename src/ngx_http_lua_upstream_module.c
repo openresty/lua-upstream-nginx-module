@@ -26,6 +26,7 @@ static int ngx_http_lua_upstream_get_servers(lua_State * L);
 static ngx_http_upstream_main_conf_t *
     ngx_http_lua_upstream_get_upstream_main_conf(lua_State *L);
 static int ngx_http_lua_upstream_get_primary_peers(lua_State * L);
+static int ngx_http_lua_upstream_get_backup_peers(lua_State * L);
 static int ngx_http_lua_get_peer(lua_State *L,
     ngx_http_upstream_rr_peer_t *peer);
 
@@ -85,6 +86,9 @@ ngx_http_lua_upstream_create_module(lua_State * L)
 
     lua_pushcfunction(L, ngx_http_lua_upstream_get_primary_peers);
     lua_setfield(L, -2, "get_primary_peers");
+
+    lua_pushcfunction(L, ngx_http_lua_upstream_get_backup_peers);
+    lua_setfield(L, -2, "get_backup_peers");
 
     return 1;
 }
@@ -264,10 +268,61 @@ ngx_http_lua_upstream_get_primary_peers(lua_State * L)
 
 found:
 
-    if (uscf->servers == NULL || uscf->servers->nelts == 0) {
-        lua_newtable(L);
-        return 1;
+    peers = uscf->peer.data;
+
+    if (peers == NULL) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "no peer data");
+        return 2;
     }
+
+    lua_createtable(L, peers->number, 0);
+
+    for (i = 0; i < peers->number; i++) {
+        ngx_http_lua_get_peer(L, &peers->peer[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+
+    return 1;
+}
+
+
+static int
+ngx_http_lua_upstream_get_backup_peers(lua_State * L)
+{
+    ngx_str_t                             host;
+    ngx_uint_t                            i;
+    ngx_http_upstream_rr_peers_t         *peers;
+    ngx_http_upstream_srv_conf_t        **uscfp, *uscf;
+    ngx_http_upstream_main_conf_t        *umcf;
+
+    if (lua_gettop(L) != 1) {
+        return luaL_error(L, "exactly one argument expected");
+    }
+
+    host.data = (u_char *) luaL_checklstring(L, 1, &host.len);
+
+    umcf = ngx_http_lua_upstream_get_upstream_main_conf(L);
+    uscfp = umcf->upstreams.elts;
+
+    lua_createtable(L, umcf->upstreams.nelts, 0);
+
+    for (i = 0; i < umcf->upstreams.nelts; i++) {
+
+        uscf = uscfp[i];
+
+        if (uscf->host.len == host.len
+            && ngx_memcmp(uscf->host.data, host.data, host.len) == 0)
+        {
+            goto found;
+        }
+    }
+
+    lua_pushnil(L);
+    lua_pushliteral(L, "upstream not found");
+    return 2;
+
+found:
 
     peers = uscf->peer.data;
 
@@ -275,6 +330,12 @@ found:
         lua_pushnil(L);
         lua_pushliteral(L, "no peer data");
         return 2;
+    }
+
+    peers = peers->next;
+    if (peers == NULL) {
+        lua_newtable(L);
+        return 1;
     }
 
     lua_createtable(L, peers->number, 0);

@@ -13,6 +13,8 @@ Table of Contents
     * [get_upstreams](#get_upstreams)
     * [get_servers](#get_servers)
     * [get_primary_peers](#get_primary_peers)
+    * [get_backup_peers](#get_backup_peers)
+* [TODO](#todo)
 * [Compatibility](#compatibility)
 * [Installation](#installation)
 * [Author](#author)
@@ -143,10 +145,22 @@ The return value is an array-like Lua table for all the primary peers. Each tabl
 
 [Back to TOC](#table-of-contents)
 
+get_backup_peers
+---------
+`syntax: peers = upstream.get_primary_peers(upstream_name)`
+
+Get configurations for all the backup peers in the specified upstream group.
+
+The return value has the same structure as [[#get_primary_peers|get_primary_peers]] function.
+
+[Back to TOC](#table-of-contents)
+
 TODO
 ====
 
 * Add API to add or remove servers to existing upstream groups.
+
+[Back to TOC](#table-of-contents)
 
 Compatibility
 =============
