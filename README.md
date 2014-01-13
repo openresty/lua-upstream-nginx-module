@@ -134,6 +134,8 @@ The return value is an array-like Lua table for all the primary peers. Each tabl
 * effective_weight
 * fail_timeout
 * fails
+* id
+    Identifier (ID) for the peer. This ID can be used to reference a peer in a group in the peer modifying API.
 * max_fails
 * name
     Socket address for the current peer

@@ -28,7 +28,7 @@ static ngx_http_upstream_main_conf_t *
 static int ngx_http_lua_upstream_get_primary_peers(lua_State * L);
 static int ngx_http_lua_upstream_get_backup_peers(lua_State * L);
 static int ngx_http_lua_get_peer(lua_State *L,
-    ngx_http_upstream_rr_peer_t *peer);
+    ngx_http_upstream_rr_peer_t *peer, ngx_uint_t id);
 
 
 static ngx_http_module_t ngx_http_lua_upstream_ctx = {
@@ -279,7 +279,7 @@ found:
     lua_createtable(L, peers->number, 0);
 
     for (i = 0; i < peers->number; i++) {
-        ngx_http_lua_get_peer(L, &peers->peer[i]);
+        ngx_http_lua_get_peer(L, &peers->peer[i], i);
         lua_rawseti(L, -2, i + 1);
     }
 
@@ -341,7 +341,7 @@ found:
     lua_createtable(L, peers->number, 0);
 
     for (i = 0; i < peers->number; i++) {
-        ngx_http_lua_get_peer(L, &peers->peer[i]);
+        ngx_http_lua_get_peer(L, &peers->peer[i], i);
         lua_rawseti(L, -2, i + 1);
     }
 
@@ -350,11 +350,12 @@ found:
 
 
 static int
-ngx_http_lua_get_peer(lua_State *L, ngx_http_upstream_rr_peer_t *peer)
+ngx_http_lua_get_peer(lua_State *L, ngx_http_upstream_rr_peer_t *peer,
+    ngx_uint_t id)
 {
     ngx_uint_t     n;
 
-    n = 7;
+    n = 8;
 
     if (peer->down) {
         n++;
@@ -369,6 +370,10 @@ ngx_http_lua_get_peer(lua_State *L, ngx_http_upstream_rr_peer_t *peer)
     }
 
     lua_createtable(L, 0, n);
+
+    lua_pushliteral(L, "id");
+    lua_pushinteger(L, (lua_Integer) id);
+    lua_rawset(L, -3);
 
     lua_pushliteral(L, "name");
     lua_pushlstring(L, (char *) peer->name.data, peer->name.len);
