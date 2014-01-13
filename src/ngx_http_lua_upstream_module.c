@@ -25,6 +25,9 @@ static int ngx_http_lua_upstream_get_upstreams(lua_State * L);
 static int ngx_http_lua_upstream_get_servers(lua_State * L);
 static ngx_http_upstream_main_conf_t *
     ngx_http_lua_upstream_get_upstream_main_conf(lua_State *L);
+static int ngx_http_lua_upstream_get_peers(lua_State * L);
+static int ngx_http_lua_inspect_peer(lua_State *L,
+    ngx_http_upstream_rr_peer_t *peer, ngx_uint_t backup);
 
 
 static ngx_http_module_t ngx_http_lua_upstream_ctx = {
@@ -79,6 +82,9 @@ ngx_http_lua_upstream_create_module(lua_State * L)
 
     lua_pushcfunction(L, ngx_http_lua_upstream_get_servers);
     lua_setfield(L, -2, "get_servers");
+
+    lua_pushcfunction(L, ngx_http_lua_upstream_get_peers);
+    lua_setfield(L, -2, "get_peers");
 
     return 1;
 }
@@ -218,6 +224,162 @@ found:
     }
 
     return 1;
+}
+
+
+static int
+ngx_http_lua_upstream_get_peers(lua_State * L)
+{
+    ngx_str_t                             host;
+    ngx_uint_t                            i, total;
+    ngx_http_upstream_rr_peers_t         *peers, *backup;
+    ngx_http_upstream_srv_conf_t        **uscfp, *uscf;
+    ngx_http_upstream_main_conf_t        *umcf;
+
+    if (lua_gettop(L) != 1) {
+        return luaL_error(L, "exactly one argument expected");
+    }
+
+    host.data = (u_char *) luaL_checklstring(L, 1, &host.len);
+
+    umcf = ngx_http_lua_upstream_get_upstream_main_conf(L);
+    uscfp = umcf->upstreams.elts;
+
+    lua_createtable(L, umcf->upstreams.nelts, 0);
+
+    for (i = 0; i < umcf->upstreams.nelts; i++) {
+
+        uscf = uscfp[i];
+
+        if (uscf->host.len == host.len
+            && ngx_memcmp(uscf->host.data, host.data, host.len) == 0)
+        {
+            goto found;
+        }
+    }
+
+    lua_pushnil(L);
+    lua_pushliteral(L, "upstream not found");
+    return 2;
+
+found:
+
+    if (uscf->servers == NULL || uscf->servers->nelts == 0) {
+        lua_newtable(L);
+        return 1;
+    }
+
+    peers = uscf->peer.data;
+
+    if (peers == NULL) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "no peer data");
+        return 2;
+    }
+
+    total = peers->number;
+    backup = peers->next;
+    if (backup) {
+        total += backup->number;
+    }
+
+    lua_createtable(L, total, 0);
+
+    for (i = 0; i < peers->number; i++) {
+        ngx_http_lua_inspect_peer(L, &peers->peer[i], 0);
+        lua_rawseti(L, -2, i + 1);
+    }
+
+    if (backup) {
+        for (i = 0; i < backup->number; i++) {
+            ngx_http_lua_inspect_peer(L, &backup->peer[i], 1);
+            lua_rawseti(L, -2, i + 1);
+        }
+    }
+
+    return 1;
+}
+
+
+static int
+ngx_http_lua_inspect_peer(lua_State *L, ngx_http_upstream_rr_peer_t *peer,
+    ngx_uint_t backup)
+{
+    ngx_uint_t     n;
+
+    n = 7;
+
+    if (backup) {
+        n++;
+    }
+
+    if (peer->down) {
+        n++;
+    }
+
+    if (peer->accessed) {
+        n++;
+    }
+
+    if (peer->checked) {
+        n++;
+    }
+
+    lua_createtable(L, 0, n);
+
+    lua_pushliteral(L, "name");
+    lua_pushlstring(L, (char *) peer->name.data, peer->name.len);
+    lua_rawset(L, -3);
+
+    lua_pushliteral(L, "weight");
+    lua_pushinteger(L, (lua_Integer) peer->weight);
+    lua_rawset(L, -3);
+
+    lua_pushliteral(L, "current_weight");
+    lua_pushinteger(L, (lua_Integer) peer->current_weight);
+    lua_rawset(L, -3);
+
+    lua_pushliteral(L, "effective_weight");
+    lua_pushinteger(L, (lua_Integer) peer->effective_weight);
+    lua_rawset(L, -3);
+
+    lua_pushliteral(L, "fails");
+    lua_pushinteger(L, (lua_Integer) peer->fails);
+    lua_rawset(L, -3);
+
+    lua_pushliteral(L, "max_fails");
+    lua_pushinteger(L, (lua_Integer) peer->max_fails);
+    lua_rawset(L, -3);
+
+    lua_pushliteral(L, "fail_timeout");
+    lua_pushinteger(L, (lua_Integer) peer->fail_timeout);
+    lua_rawset(L, -3);
+
+    if (peer->accessed) {
+        lua_pushliteral(L, "accessed");
+        lua_pushinteger(L, (lua_Integer) peer->accessed);
+        lua_rawset(L, -3);
+    }
+
+    if (peer->checked) {
+        lua_pushliteral(L, "checked");
+        lua_pushinteger(L, (lua_Integer) peer->checked);
+        lua_rawset(L, -3);
+    }
+
+    if (backup) {
+        lua_pushliteral(L, "backup");
+        lua_pushboolean(L, 1);
+        lua_rawset(L, -3);
+    }
+
+    if (peer->down) {
+        lua_pushliteral(L, "down");
+        lua_pushboolean(L, 1);
+        lua_rawset(L, -3);
+    }
+
+    return 0;
 }
 
 

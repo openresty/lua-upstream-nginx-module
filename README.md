@@ -9,6 +9,11 @@ Table of Contents
 * [Name](#name)
 * [Status](#status)
 * [Synopsis](#synopsis)
+* [Functions](#functions)
+    * [get_upstreams](#get_upstreams)
+    * [get_servers](#get_servers)
+    * [get_peers](#get_peers)
+* [Compatibility](#compatibility)
 * [Installation](#installation)
 * [Author](#author)
 * [Copyright and License](#copyright-and-license)
@@ -83,12 +88,37 @@ http {
 }
 ```
 
+Functions
+=========
+
+[Back to TOC](#table-of-contents)
+
+get_upstreams
+-------------
+`syntax: names = upstream.get_upstreams()`
+
+[Back to TOC](#table-of-contents)
+
+get_servers
+-----------
+`syntax: servers = upstream.get_servers(upstream_name)`
+
+[Back to TOC](#table-of-contents)
+
+get_peers
+---------
+`syntax: peers = upstream.get_peers(upstream_name)`
+
+[Back to TOC](#table-of-contents)
+
 Compatibility
 =============
 
 The following versions of Nginx should work with this module:
 
 * **1.5.x**                       (last tested: 1.5.8)
+
+[Back to TOC](#table-of-contents)
 
 Installation
 ============
