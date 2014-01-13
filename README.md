@@ -114,6 +114,7 @@ Get configurations for all the servers in the specified upstream group. Please o
 The return value is an array-like Lua table. Each table entry is a hash-like Lua table that takes the following keys:
 
 * addr
+
     socket address(es). can be either a Lua string or an array-like Lua table of Lua strings.
 * backup
 * fail_timeout
@@ -135,14 +136,18 @@ The return value is an array-like Lua table for all the primary peers. Each tabl
 * fail_timeout
 * fails
 * id
+
     Identifier (ID) for the peer. This ID can be used to reference a peer in a group in the peer modifying API.
 * max_fails
 * name
+
     Socket address for the current peer
 * weight
 * accessed
+
     Timestamp for the last access (in seconds since the Epoch)
 * checked
+
     Timestamp for the last check (in seconds since the Epoch)
 
 [Back to TOC](#table-of-contents)
