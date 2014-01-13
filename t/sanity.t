@@ -7,7 +7,7 @@ use Test::Nginx::Socket::Lua;
 #workers(2);
 #log_level('warn');
 
-repeat_each(1);
+repeat_each(2);
 
 plan tests => repeat_each() * (blocks() * 3);
 
@@ -115,7 +115,7 @@ failed to get servers: upstream not found
 
 
 
-=== TEST 1: sample
+=== TEST 4: sample in README
 --- http_config
     upstream foo.com {
         server 127.0.0.1 fail_timeout=53 weight=4 max_fails=100;
@@ -130,6 +130,7 @@ failed to get servers: upstream not found
     location = /upstreams {
         default_type text/plain;
         content_by_lua '
+            local concat = table.concat
             local upstream = require "ngx.upstream"
             local get_servers = upstream.get_servers
             local get_upstreams = upstream.get_upstreams
@@ -150,7 +151,11 @@ failed to get servers: upstream not found
                             else
                                 ngx.print(", ")
                             end
-                            ngx.print(k, " = ", v)
+                            if type(v) == "table" then
+                                ngx.print(k, " = {", concat(v, ", "), "}")
+                            else
+                                ngx.print(k, " = ", v)
+                            end
                         end
                         ngx.print("\\n")
                     end
@@ -158,7 +163,6 @@ failed to get servers: upstream not found
             end
         ';
     }
-
 --- request
     GET /upstreams
 --- response_body
@@ -167,6 +171,35 @@ upstream foo.com:
     addr = 106.187.41.147:81, weight = 1, fail_timeout = 10, max_fails = 1
 upstream bar:
     addr = 127.0.0.2:80, weight = 1, fail_timeout = 10, max_fails = 1
+--- no_error_log
+[error]
+
+
+
+=== TEST 5: multi-peer servers
+--- http_config
+    $TEST_NGINX_MY_INIT_CONFIG
+    upstream sina {
+        server www.sina.com.cn;
+    }
+--- config
+    location /t {
+        content_by_lua '
+            local upstream = require "ngx.upstream"
+            local ljson = require "ljson"
+            local srvs, err = upstream.get_servers("sina")
+            if not srvs then
+                ngx.say("failed to get sina: ", err)
+                return
+            end
+            ngx.say(ljson.encode(srvs))
+        ';
+    }
+--- request
+    GET /t
+--- response_body_like chop
+^\[\{"addr":\["\d{1,3}(?:\.\d{1,3}){3}:80"(?:,"\d{1,3}(?:\.\d{1,3}){3}:80")+\],"fail_timeout":10,"max_fails":1,"weight":1\}\]$
+
 --- no_error_log
 [error]
 

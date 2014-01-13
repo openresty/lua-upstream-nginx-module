@@ -116,7 +116,7 @@ static int
 ngx_http_lua_upstream_get_servers(lua_State * L)
 {
     ngx_str_t                             host;
-    ngx_uint_t                            i, n;
+    ngx_uint_t                            i, j, n;
     ngx_http_upstream_server_t           *server;
     ngx_http_upstream_srv_conf_t        **uscfp, *uscf;
     ngx_http_upstream_main_conf_t        *umcf;
@@ -173,8 +173,21 @@ found:
         lua_createtable(L, 0, n);
 
         lua_pushliteral(L, "addr");
-        lua_pushlstring(L, (char *) server[i].addrs->name.data,
-                        server[i].addrs->name.len);
+
+        if (server[i].naddrs == 1) {
+            lua_pushlstring(L, (char *) server[i].addrs->name.data,
+                            server[i].addrs->name.len);
+
+        } else {
+            lua_createtable(L, server[i].naddrs, 0);
+
+            for (j = 0; j < server[i].naddrs; j++) {
+                lua_pushlstring(L, (char *) server[i].addrs[j].name.data,
+                                server[i].addrs[j].name.len);
+                lua_rawseti(L, -2, j + 1);
+            }
+        }
+
         lua_rawset(L, -3);
 
         lua_pushliteral(L, "weight");

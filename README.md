@@ -46,6 +46,7 @@ http {
         location = /upstreams {
             default_type text/plain;
             content_by_lua '
+                local concat = table.concat
                 local upstream = require "ngx.upstream"
                 local get_servers = upstream.get_servers
                 local get_upstreams = upstream.get_upstreams
@@ -66,7 +67,11 @@ http {
                                 else
                                     ngx.print(", ")
                                 end
-                                ngx.print(k, " = ", v)
+                                if type(v) == "table" then
+                                    ngx.print(k, " = {", concat(v, ", "), "}")
+                                else
+                                    ngx.print(k, " = ", v)
+                                end
                             end
                             ngx.print("\\n")
                         end
