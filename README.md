@@ -12,7 +12,7 @@ Table of Contents
 * [Functions](#functions)
     * [get_upstreams](#get_upstreams)
     * [get_servers](#get_servers)
-    * [get_peers](#get_peers)
+    * [get_primary_peers](#get_primary_peers)
 * [Compatibility](#compatibility)
 * [Installation](#installation)
 * [Author](#author)
@@ -97,19 +97,56 @@ get_upstreams
 -------------
 `syntax: names = upstream.get_upstreams()`
 
+Get a list of the names for all the named upstream groups (i.e., explicit `upstream {}` blocks.
+
+Note that implicit upstream groups created by `proxy_pass` and etc are excluded.
+
 [Back to TOC](#table-of-contents)
 
 get_servers
 -----------
 `syntax: servers = upstream.get_servers(upstream_name)`
 
+Get configurations for all the servers in the specified upstream group. Please one server may take multiple addresses when its server name can be resolved to multiple addresses.
+
+The return value is an array-like Lua table. Each table entry is a hash-like Lua table that takes the following keys:
+
+* addr
+    socket address(es). can be either a Lua string or an array-like Lua table of Lua strings.
+* backup
+* fail_timeout
+* max_fails
+* weight
+
 [Back to TOC](#table-of-contents)
 
-get_peers
+get_primary_peers
 ---------
-`syntax: peers = upstream.get_peers(upstream_name)`
+`syntax: peers = upstream.get_primary_peers(upstream_name)`
+
+Get configurations for all the primary (non-backup) peers in the specified upstream group.
+
+The return value is an array-like Lua table for all the primary peers. Each table entry is a (nested) hash-like Lua table that takes the following keys:
+
+* current_weight
+* effective_weight
+* fail_timeout
+* fails
+* max_fails
+* name
+    Socket address for the current peer
+* weight
+* accessed
+    Timestamp for the last access (in seconds since the Epoch)
+* checked
+    Timestamp for the last check (in seconds since the Epoch)
 
 [Back to TOC](#table-of-contents)
+
+TODO
+====
+
+* Add API to add or remove servers to existing upstream groups.
 
 Compatibility
 =============

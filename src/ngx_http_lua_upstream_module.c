@@ -25,9 +25,9 @@ static int ngx_http_lua_upstream_get_upstreams(lua_State * L);
 static int ngx_http_lua_upstream_get_servers(lua_State * L);
 static ngx_http_upstream_main_conf_t *
     ngx_http_lua_upstream_get_upstream_main_conf(lua_State *L);
-static int ngx_http_lua_upstream_get_peers(lua_State * L);
-static int ngx_http_lua_inspect_peer(lua_State *L,
-    ngx_http_upstream_rr_peer_t *peer, ngx_uint_t backup);
+static int ngx_http_lua_upstream_get_primary_peers(lua_State * L);
+static int ngx_http_lua_get_peer(lua_State *L,
+    ngx_http_upstream_rr_peer_t *peer);
 
 
 static ngx_http_module_t ngx_http_lua_upstream_ctx = {
@@ -83,8 +83,8 @@ ngx_http_lua_upstream_create_module(lua_State * L)
     lua_pushcfunction(L, ngx_http_lua_upstream_get_servers);
     lua_setfield(L, -2, "get_servers");
 
-    lua_pushcfunction(L, ngx_http_lua_upstream_get_peers);
-    lua_setfield(L, -2, "get_peers");
+    lua_pushcfunction(L, ngx_http_lua_upstream_get_primary_peers);
+    lua_setfield(L, -2, "get_primary_peers");
 
     return 1;
 }
@@ -228,11 +228,11 @@ found:
 
 
 static int
-ngx_http_lua_upstream_get_peers(lua_State * L)
+ngx_http_lua_upstream_get_primary_peers(lua_State * L)
 {
     ngx_str_t                             host;
-    ngx_uint_t                            i, total;
-    ngx_http_upstream_rr_peers_t         *peers, *backup;
+    ngx_uint_t                            i;
+    ngx_http_upstream_rr_peers_t         *peers;
     ngx_http_upstream_srv_conf_t        **uscfp, *uscf;
     ngx_http_upstream_main_conf_t        *umcf;
 
@@ -277,24 +277,11 @@ found:
         return 2;
     }
 
-    total = peers->number;
-    backup = peers->next;
-    if (backup) {
-        total += backup->number;
-    }
-
-    lua_createtable(L, total, 0);
+    lua_createtable(L, peers->number, 0);
 
     for (i = 0; i < peers->number; i++) {
-        ngx_http_lua_inspect_peer(L, &peers->peer[i], 0);
+        ngx_http_lua_get_peer(L, &peers->peer[i]);
         lua_rawseti(L, -2, i + 1);
-    }
-
-    if (backup) {
-        for (i = 0; i < backup->number; i++) {
-            ngx_http_lua_inspect_peer(L, &backup->peer[i], 1);
-            lua_rawseti(L, -2, i + 1);
-        }
     }
 
     return 1;
@@ -302,16 +289,11 @@ found:
 
 
 static int
-ngx_http_lua_inspect_peer(lua_State *L, ngx_http_upstream_rr_peer_t *peer,
-    ngx_uint_t backup)
+ngx_http_lua_get_peer(lua_State *L, ngx_http_upstream_rr_peer_t *peer)
 {
     ngx_uint_t     n;
 
     n = 7;
-
-    if (backup) {
-        n++;
-    }
 
     if (peer->down) {
         n++;
@@ -364,12 +346,6 @@ ngx_http_lua_inspect_peer(lua_State *L, ngx_http_upstream_rr_peer_t *peer,
     if (peer->checked) {
         lua_pushliteral(L, "checked");
         lua_pushinteger(L, (lua_Integer) peer->checked);
-        lua_rawset(L, -3);
-    }
-
-    if (backup) {
-        lua_pushliteral(L, "backup");
-        lua_pushboolean(L, 1);
         lua_rawset(L, -3);
     }
 

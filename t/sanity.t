@@ -82,7 +82,7 @@ done
 
     upstream foo.com:1234 {
         server 127.0.0.1 fail_timeout=53 weight=4 max_fails=100;
-        server agentzh.org:81;
+        server agentzh.org:81 backup;
     }
 
     upstream bar {
@@ -106,7 +106,7 @@ done
 --- request
     GET /t
 --- response_body
-foo.com:1234: [{"addr":"127.0.0.1:80","fail_timeout":53,"max_fails":100,"weight":4},{"addr":"106.187.41.147:81","fail_timeout":10,"max_fails":1,"weight":1}]
+foo.com:1234: [{"addr":"127.0.0.1:80","fail_timeout":53,"max_fails":100,"weight":4},{"addr":"106.187.41.147:81","backup":true,"fail_timeout":10,"max_fails":1,"weight":1}]
 bar: [{"addr":"127.0.0.2:80","fail_timeout":10,"max_fails":1,"weight":1}]
 failed to get servers: upstream not found
 
@@ -216,9 +216,9 @@ upstream bar:
         content_by_lua '
             local upstream = require "ngx.upstream"
             local ljson = require "ljson"
-            local peers, err = upstream.get_peers("sina")
+            local peers, err = upstream.get_primary_peers("sina")
             if not peers then
-                ngx.say("failed to get peers: ", err)
+                ngx.say("failed to get primary peers: ", err)
                 return
             end
             ngx.say(ljson.encode(peers))
@@ -252,7 +252,7 @@ upstream bar:
             local ljson = require "ljson"
             us = upstream.get_upstreams()
             for _, u in ipairs(us) do
-                local peers, err = upstream.get_peers(u)
+                local peers, err = upstream.get_primary_peers(u)
                 if not peers then
                     ngx.say("failed to get peers: ", err)
                     return
