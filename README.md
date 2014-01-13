@@ -151,7 +151,7 @@ get_backup_peers
 
 Get configurations for all the backup peers in the specified upstream group.
 
-The return value has the same structure as [[#get_primary_peers|get_primary_peers]] function.
+The return value has the same structure as [get_primary_peers](#get_primary_peers) function.
 
 [Back to TOC](#table-of-contents)
 
