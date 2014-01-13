@@ -99,7 +99,7 @@ get_upstreams
 -------------
 `syntax: names = upstream.get_upstreams()`
 
-Get a list of the names for all the named upstream groups (i.e., explicit `upstream {}` blocks.
+Get a list of the names for all the named upstream groups (i.e., explicit `upstream {}` blocks).
 
 Note that implicit upstream groups created by `proxy_pass` and etc are excluded.
 
