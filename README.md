@@ -23,9 +23,8 @@ Synopsis
 ========
 
 ```nginx
-```
-
-    upstream foo.com:1234 {
+http {
+    upstream foo.com {
         server 127.0.0.1 fail_timeout=53 weight=4 max_fails=100;
         server agentzh.org:81;
     }
@@ -76,6 +75,8 @@ Synopsis
             ';
         }
     }
+}
+```
 
 Compatibility
 =============
