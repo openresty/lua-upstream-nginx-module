@@ -173,7 +173,7 @@ To uniquely specify a peer, you need to specify the upstream name, whether or no
 
 Note that this method only changes the peer settings in the current Nginx worker
 process. You need to synchronize the changes across all the Nginx workers yourself if you
-want a server-wide change.
+want a server-wide change (for example, by means of [ngx_lua](https://github.com/chaoslawful/lua-nginx-module#ngxshareddict)'s [ngx.shared.DICT](https://github.com/chaoslawful/lua-nginx-module#ngxshareddict)).
 
 Below is an example. Consider we have a "bar" upstream block in `nginx.conf`:
 
