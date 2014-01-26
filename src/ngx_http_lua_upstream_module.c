@@ -31,6 +31,9 @@ static int ngx_http_lua_get_peer(lua_State *L,
     ngx_http_upstream_rr_peer_t *peer, ngx_uint_t id);
 static ngx_http_upstream_srv_conf_t *
     ngx_http_lua_upstream_find_upstream(lua_State *L, ngx_str_t *host);
+static ngx_http_upstream_rr_peer_t *
+    ngx_http_lua_upstream_lookup_peer(lua_State *L);
+static int ngx_http_lua_upstream_set_peer_down(lua_State * L);
 
 
 static ngx_http_module_t ngx_http_lua_upstream_ctx = {
@@ -91,6 +94,9 @@ ngx_http_lua_upstream_create_module(lua_State * L)
 
     lua_pushcfunction(L, ngx_http_lua_upstream_get_backup_peers);
     lua_setfield(L, -2, "get_backup_peers");
+
+    lua_pushcfunction(L, ngx_http_lua_upstream_set_peer_down);
+    lua_setfield(L, -2, "set_peer_down");
 
     return 1;
 }
@@ -300,6 +306,74 @@ ngx_http_lua_upstream_get_backup_peers(lua_State * L)
     }
 
     return 1;
+}
+
+
+static int
+ngx_http_lua_upstream_set_peer_down(lua_State * L)
+{
+    ngx_http_upstream_rr_peer_t          *peer;
+
+    if (lua_gettop(L) != 4) {
+        return luaL_error(L, "exactly 4 arguments expected");
+    }
+
+    peer = ngx_http_lua_upstream_lookup_peer(L);
+    if (peer == NULL) {
+        return 2;
+    }
+
+    peer->down = lua_toboolean(L, 4);
+
+    lua_pushboolean(L, 1);
+    return 1;
+}
+
+
+static ngx_http_upstream_rr_peer_t *
+ngx_http_lua_upstream_lookup_peer(lua_State *L)
+{
+    int                                   id, backup;
+    ngx_str_t                             host;
+    ngx_http_upstream_srv_conf_t         *us;
+    ngx_http_upstream_rr_peers_t         *peers;
+
+    host.data = (u_char *) luaL_checklstring(L, 1, &host.len);
+
+    us = ngx_http_lua_upstream_find_upstream(L, &host);
+    if (us == NULL) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "upstream not found");
+        return NULL;
+    }
+
+    peers = us->peer.data;
+
+    if (peers == NULL) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "no peer data");
+        return NULL;
+    }
+
+    backup = lua_toboolean(L, 2);
+    if (backup) {
+        peers = peers->next;
+    }
+
+    if (peers == NULL) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "no backup peers");
+        return NULL;
+    }
+
+    id = luaL_checkint(L, 3);
+    if (id < 0 || (ngx_uint_t) id >= peers->number) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "bad peer id");
+        return NULL;
+    }
+
+    return &peers->peer[id];
 }
 
 

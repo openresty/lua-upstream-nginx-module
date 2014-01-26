@@ -312,3 +312,190 @@ upstream bar:
 --- no_error_log
 [error]
 
+
+
+=== TEST 9: set primary peer down (0)
+--- http_config
+    $TEST_NGINX_MY_INIT_CONFIG
+    upstream bar {
+        server 127.0.0.2;
+        server 127.0.0.3 backup;
+        server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
+    }
+--- config
+    location /t {
+        content_by_lua '
+            local upstream = require "ngx.upstream"
+            local ljson = require "ljson"
+            local u = "bar"
+            local ok, err = upstream.set_peer_down(u, false, 0, true)
+            if not ok then
+                ngx.say("failed to set peer down: ", err)
+                return
+            end
+            local peers, err = upstream.get_primary_peers(u)
+            if not peers then
+                ngx.say("failed to get peers: ", err)
+                return
+            end
+            ngx.say(ljson.encode(peers))
+        ';
+    }
+--- request
+    GET /t
+--- response_body
+[{"current_weight":0,"down":true,"effective_weight":1,"fail_timeout":10,"fails":0,"id":0,"max_fails":1,"name":"127.0.0.2:80","weight":1}]
+--- no_error_log
+[error]
+
+
+
+=== TEST 10: set primary peer down (1, bad index)
+--- http_config
+    $TEST_NGINX_MY_INIT_CONFIG
+    upstream bar {
+        server 127.0.0.2;
+        server 127.0.0.3 backup;
+        server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
+    }
+--- config
+    location /t {
+        content_by_lua '
+            local upstream = require "ngx.upstream"
+            local ljson = require "ljson"
+            local u = "bar"
+            local ok, err = upstream.set_peer_down(u, false, 1, true)
+            if not ok then
+                ngx.say("failed to set peer down: ", err)
+                return
+            end
+            local peers, err = upstream.get_primary_peers(u)
+            if not peers then
+                ngx.say("failed to get peers: ", err)
+                return
+            end
+            ngx.say(ljson.encode(peers))
+        ';
+    }
+--- request
+    GET /t
+--- response_body
+failed to set peer down: bad peer id
+--- no_error_log
+[error]
+
+
+
+=== TEST 11: set backup peer down (index 0)
+--- http_config
+    $TEST_NGINX_MY_INIT_CONFIG
+    upstream bar {
+        server 127.0.0.2;
+        server 127.0.0.3 backup;
+        server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
+    }
+--- config
+    location /t {
+        content_by_lua '
+            local upstream = require "ngx.upstream"
+            local ljson = require "ljson"
+            local u = "bar"
+            local ok, err = upstream.set_peer_down(u, true, 0, true)
+            if not ok then
+                ngx.say("failed to set peer down: ", err)
+                return
+            end
+            local peers, err = upstream.get_backup_peers(u)
+            if not peers then
+                ngx.say("failed to get peers: ", err)
+                return
+            end
+            ngx.say(ljson.encode(peers))
+        ';
+    }
+--- request
+    GET /t
+--- response_body
+[{"current_weight":0,"down":true,"effective_weight":1,"fail_timeout":10,"fails":0,"id":0,"max_fails":1,"name":"127.0.0.3:80","weight":1},{"current_weight":0,"effective_weight":7,"fail_timeout":23,"fails":0,"id":1,"max_fails":200,"name":"127.0.0.4:80","weight":7}]
+--- no_error_log
+[error]
+
+
+
+=== TEST 12: set backup peer down (toggle twice, index 0)
+--- http_config
+    $TEST_NGINX_MY_INIT_CONFIG
+    upstream bar {
+        server 127.0.0.2;
+        server 127.0.0.3 backup;
+        server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
+    }
+--- config
+    location /t {
+        content_by_lua '
+            local upstream = require "ngx.upstream"
+            local ljson = require "ljson"
+            local u = "bar"
+            local ok, err = upstream.set_peer_down(u, true, 0, true)
+            if not ok then
+                ngx.say("failed to set peer down: ", err)
+                return
+            end
+            local ok, err = upstream.set_peer_down(u, true, 0, false)
+            if not ok then
+                ngx.say("failed to set peer down: ", err)
+                return
+            end
+
+            local peers, err = upstream.get_backup_peers(u)
+            if not peers then
+                ngx.say("failed to get peers: ", err)
+                return
+            end
+            ngx.say(ljson.encode(peers))
+        ';
+    }
+--- request
+    GET /t
+--- response_body
+[{"current_weight":0,"effective_weight":1,"fail_timeout":10,"fails":0,"id":0,"max_fails":1,"name":"127.0.0.3:80","weight":1},{"current_weight":0,"effective_weight":7,"fail_timeout":23,"fails":0,"id":1,"max_fails":200,"name":"127.0.0.4:80","weight":7}]
+--- no_error_log
+[error]
+
+
+
+=== TEST 13: set backup peer down (index 1)
+--- http_config
+    $TEST_NGINX_MY_INIT_CONFIG
+    upstream bar {
+        server 127.0.0.2;
+        server 127.0.0.3 backup;
+        server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
+    }
+--- config
+    location /t {
+        content_by_lua '
+            local upstream = require "ngx.upstream"
+            local ljson = require "ljson"
+            local u = "bar"
+            local ok, err = upstream.set_peer_down(u, true, 1, true)
+            if not ok then
+                ngx.say("failed to set peer down: ", err)
+                return
+            end
+
+            local peers, err = upstream.get_backup_peers(u)
+            if not peers then
+                ngx.say("failed to get peers: ", err)
+                return
+            end
+            ngx.say(ljson.encode(peers))
+        ';
+    }
+--- request
+    GET /t
+--- response_body
+[{"current_weight":0,"effective_weight":1,"fail_timeout":10,"fails":0,"id":0,"max_fails":1,"name":"127.0.0.3:80","weight":1},{"current_weight":0,"down":true,"effective_weight":7,"fail_timeout":23,"fails":0,"id":1,"max_fails":200,"name":"127.0.0.4:80","weight":7}]
+--- no_error_log
+[error]
+

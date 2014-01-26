@@ -14,6 +14,7 @@ Table of Contents
     * [get_servers](#get_servers)
     * [get_primary_peers](#get_primary_peers)
     * [get_backup_peers](#get_backup_peers)
+    * [set_peer_down](#set_peer_down)
 * [TODO](#todo)
 * [Compatibility](#compatibility)
 * [Installation](#installation)
@@ -153,12 +154,54 @@ The return value is an array-like Lua table for all the primary peers. Each tabl
 [Back to TOC](#table-of-contents)
 
 get_backup_peers
----------
+----------------
 `syntax: peers = upstream.get_primary_peers(upstream_name)`
 
 Get configurations for all the backup peers in the specified upstream group.
 
 The return value has the same structure as [get_primary_peers](#get_primary_peers) function.
+
+[Back to TOC](#table-of-contents)
+
+set_peer_down
+-------------
+`syntax: ok, err = upstream.set_peer_down(upstream_name, is_backup, peer_id, down_value)`
+
+Set the "down" (boolean) attribute of the specified peer.
+
+To uniquely specify a peer, you need to specify the upstream name, whether or not it is a backup peer, and the peer id (starting from 0).
+
+Note that this method only changes the peer settings in the current Nginx worker
+process. You need to synchronize the changes across all the Nginx workers yourself if you
+want a server-wide change.
+
+Below is an example. Consider we have a "bar" upstream block in `nginx.conf`:
+
+```nginx
+upstream bar {
+    server 127.0.0.2;
+    server 127.0.0.3 backup;
+    server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
+}
+```
+
+then
+
+```lua
+upstream.set_peer_down("bar", false, 0, true)
+```
+
+will turn down the primary peer corresponding to `server 127.0.0.2`.
+
+Similarly,
+
+```lua
+upstream.set_peer_down("bar", true, 1, true)
+```
+
+will turn down the backup peer corresponding to `server 127.0.0.4 ...`.
+
+You can turn on a peer again by providing a `false` value as the 4th argument.
 
 [Back to TOC](#table-of-contents)
 
