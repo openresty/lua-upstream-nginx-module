@@ -291,6 +291,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 See Also
 ========
 * the ngx_lua module: http://github.com/chaoslawful/lua-nginx-module#readme
+* the [lua-resty-upstream-healthcheck](https://github.com/agentzh/lua-resty-upstream-healthcheck) library which makes use of the Lua API provided by this module.
 
 [Back to TOC](#table-of-contents)
 
