@@ -123,6 +123,14 @@ ngx_http_lua_upstream_get_upstreams(lua_State * L)
         uscf = uscfp[i];
 
         lua_pushlstring(L, (char *) uscf->host.data, uscf->host.len);
+        if (uscf->port) {
+            lua_pushfstring(L, ":%d", (int) uscf->port);
+            lua_concat(L, 2);
+
+            /* XXX maybe we should also take "default_port" into account
+             * here? */
+        }
+
         lua_rawseti(L, -2, i + 1);
     }
 
@@ -472,6 +480,9 @@ ngx_http_lua_upstream_get_upstream_main_conf(lua_State *L)
 static ngx_http_upstream_srv_conf_t *
 ngx_http_lua_upstream_find_upstream(lua_State *L, ngx_str_t *host)
 {
+    u_char                               *port;
+    size_t                                len;
+    ngx_int_t                             n;
     ngx_uint_t                            i;
     ngx_http_upstream_srv_conf_t        **uscfp, *uscf;
     ngx_http_upstream_main_conf_t        *umcf;
@@ -487,6 +498,32 @@ ngx_http_lua_upstream_find_upstream(lua_State *L, ngx_str_t *host)
             && ngx_memcmp(uscf->host.data, host->data, host->len) == 0)
         {
             return uscf;
+        }
+    }
+
+    port = ngx_strlchr(host->data, host->data + host->len, ':');
+    if (port) {
+        port++;
+        n = ngx_atoi(port, host->data + host->len - port);
+        if (n < 1 || n > 65535) {
+            return NULL;
+        }
+
+        /* try harder with port */
+
+        len = port - host->data - 1;
+
+        for (i = 0; i < umcf->upstreams.nelts; i++) {
+
+            uscf = uscfp[i];
+
+            if (uscf->port
+                && uscf->port == n
+                && uscf->host.len == len
+                && ngx_memcmp(uscf->host.data, host->data, len) == 0)
+            {
+                return uscf;
+            }
         }
     }
 

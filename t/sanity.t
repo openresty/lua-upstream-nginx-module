@@ -499,3 +499,68 @@ failed to set peer down: bad peer id
 --- no_error_log
 [error]
 
+
+
+=== TEST 14: upstream names with ports (github #2)
+--- http_config
+--- config
+    location /upstream1 {
+        proxy_pass http://127.0.0.1:1190;
+    }
+
+    location /upstream2{
+        proxy_pass http://127.0.0.2:1110;
+    }
+
+    location /upstream3{
+        proxy_pass http://127.0.0.1:1130;
+    }
+
+    location /t {
+        content_by_lua '
+                local concat = table.concat
+                local upstream = require "ngx.upstream"
+                local get_servers = upstream.get_servers
+                local get_upstreams = upstream.get_upstreams
+
+                local us = get_upstreams()
+                for _, u in ipairs(us) do
+                    ngx.say("upstream ", u, ":")
+                    local srvs, err = get_servers(u)
+                    if not srvs then
+                        ngx.say("failed to get servers in upstream ", u)
+                    else
+                        for _, srv in ipairs(srvs) do
+                            local first = true
+                            for k, v in pairs(srv) do
+                                if first then
+                                    first = false
+                                    ngx.print("    ")
+                                else
+                                    ngx.print(", ")
+                                end
+                                if type(v) == "table" then
+                                    ngx.print(k, " = {", concat(v, ", "), "}")
+                                else
+                                    ngx.print(k, " = ", v)
+                                end
+                            end
+                            ngx.print("\\n")
+                        end
+                    end
+                end
+        ';
+    }
+--- request
+    GET /t
+--- response_body
+upstream 127.0.0.1:1190:
+    addr = 127.0.0.1:1190, weight = 0, fail_timeout = 0, max_fails = 0
+upstream 127.0.0.2:1110:
+    addr = 127.0.0.2:1110, weight = 0, fail_timeout = 0, max_fails = 0
+upstream 127.0.0.1:1130:
+    addr = 127.0.0.1:1130, weight = 0, fail_timeout = 0, max_fails = 0
+
+--- no_error_log
+[error]
+
