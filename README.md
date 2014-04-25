@@ -25,7 +25,7 @@ Table of Contents
 Status
 ======
 
-This module is still under early development.
+This module is still under active development and is considered production ready.
 
 Synopsis
 ========
@@ -173,7 +173,7 @@ To uniquely specify a peer, you need to specify the upstream name, whether or no
 
 Note that this method only changes the peer settings in the current Nginx worker
 process. You need to synchronize the changes across all the Nginx workers yourself if you
-want a server-wide change (for example, by means of [ngx_lua](https://github.com/chaoslawful/lua-nginx-module#ngxshareddict)'s [ngx.shared.DICT](https://github.com/chaoslawful/lua-nginx-module#ngxshareddict)).
+want a server-wide change (for example, by means of [ngx_lua](https://github.com/openresty/lua-nginx-module#ngxshareddict)'s [ngx.shared.DICT](https://github.com/openresty/lua-nginx-module#ngxshareddict)).
 
 Below is an example. Consider we have a "bar" upstream block in `nginx.conf`:
 
@@ -217,37 +217,39 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
-* **1.5.x**                       (last tested: 1.5.8)
+* **1.5.x**                       (last tested: 1.5.12)
 
 [Back to TOC](#table-of-contents)
 
 Installation
 ============
 
+This module is bundled and enabled by default in the [OpenResty](http://openresty.org) bundle. And you are recommended to use OpenResty.
+
 1. Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
-the version 1.5.8 (see [nginx compatibility](#compatibility)), 
-2. then grab the source code of the [ngx_lua](https://github.com/chaoslawful/lua-nginx-module#installation) as well as its dependencies like [LuaJIT](http://luajit.org/download.html).
+the version 1.5.12 (see [nginx compatibility](#compatibility)),
+2. then grab the source code of the [ngx_lua](https://github.com/openresty/lua-nginx-module#installation) as well as its dependencies like [LuaJIT](http://luajit.org/download.html).
 3. and finally build the source with this module:
 
 ```bash
-$ wget 'http://nginx.org/download/nginx-1.5.8.tar.gz'
-$ tar -xzvf nginx-1.5.8.tar.gz
-$ cd nginx-1.5.8/
+wget 'http://nginx.org/download/nginx-1.5.12.tar.gz'
+tar -xzvf nginx-1.5.12.tar.gz
+cd nginx-1.5.12/
 
 # assuming your luajit is installed to /opt/luajit:
 export LUAJIT_LIB=/opt/luajit/lib
 
-# assuming you are using LuaJIT 2.0.x:
-export LUAJIT_INC=/opt/luajit/include/luajit-2.0
+# assuming you are using LuaJIT v2.1:
+export LUAJIT_INC=/opt/luajit/include/luajit-2.1
 
 # Here we assume you would install you nginx under /opt/nginx/.
-$ ./configure --prefix=/opt/nginx \
+./configure --prefix=/opt/nginx \
     --with-ld-opt="-Wl,-rpath,$LUAJIT_LIB" \
     --add-module=/path/to/lua-nginx-module \
     --add-module=/path/to/lua-upstream-nginx-module
 
-$ make -j2
-$ make install
+make -j2
+make install
 ```
 
 If you are using [ngx_openresty](http://openresty.org), then you can just add this module to OpenResty like this:
@@ -290,8 +292,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 See Also
 ========
-* the ngx_lua module: http://github.com/chaoslawful/lua-nginx-module#readme
-* the [lua-resty-upstream-healthcheck](https://github.com/agentzh/lua-resty-upstream-healthcheck) library which makes use of the Lua API provided by this module.
+* the ngx_lua module: http://github.com/openresty/lua-nginx-module#readme
+* the [lua-resty-upstream-healthcheck](https://github.com/openresty/lua-resty-upstream-healthcheck) library which makes use of the Lua API provided by this module.
 
 [Back to TOC](#table-of-contents)
 
