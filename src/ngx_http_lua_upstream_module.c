@@ -360,27 +360,28 @@ ngx_http_lua_upstream_set_peer_weight(lua_State * L)
 
 	int new_weight =  (int)lua_tointeger(L, 4);
 	if (new_weight < 1){
+        lua_pushnil(L);
+        lua_pushliteral(L, "ilegal weight");
 		return 2;
 	}
-	
-	// find upstream, in order to update weighted & total_weight
-	host.data = (u_char *) luaL_checklstring(L, 1, &host.data);
-	us = ngx_http_lua_upstream_find_upstream(L, &host);
-    if (us == NULL) {
-        lua_pushnil(L);
-        lua_pushliteral(L, "upstream not found");
-		dd("upstream is null");
-        return 2;
-    }
+		
 
 	int diff = new_weight - peer->weight;
     peer->weight = new_weight;
     peer->effective_weight = new_weight;
 	peer->current_weight += diff;
 
-//	peers = us->peer.data;
-//	peers->total_weight += diff;
-//	peers->weighted = (peers->total_weight == peers->number);
+	// find upstream, in order to update weighted & total_weight
+	host.data = (u_char *) luaL_checklstring(L, 1, &host.len);
+	us = ngx_http_lua_upstream_find_upstream(L, &host);
+    if (us == NULL) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "upstream not found");
+        return 2;
+    }
+	peers = us->peer.data;
+	peers->total_weight += diff;
+	peers->weighted = (peers->total_weight == peers->number);
 
     return 1;
 }
