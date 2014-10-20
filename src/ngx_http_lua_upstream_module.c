@@ -344,7 +344,10 @@ ngx_http_lua_upstream_set_peer_down(lua_State * L)
 static int
 ngx_http_lua_upstream_set_peer_weight(lua_State * L)
 {
-    ngx_http_upstream_rr_peer_t          *peer;
+    ngx_http_upstream_rr_peer_t         *peer;
+	ngx_str_t							host;
+	ngx_http_upstream_srv_conf_t		*us;
+	ngx_http_upstream_rr_peers_t		*peers;
 
     if (lua_gettop(L) != 4) {
         return luaL_error(L, "exactly 4 arguments expected");
@@ -355,10 +358,30 @@ ngx_http_lua_upstream_set_peer_weight(lua_State * L)
         return 2;
     }
 
-    peer->weight = (int)lua_tointeger(L, 4);
-    peer->effective_weight = (int)lua_tointeger(L, 4);
+	int new_weight =  (int)lua_tointeger(L, 4);
+	if (new_weight < 1){
+		return 2;
+	}
+	
+	// find upstream, in order to update weighted & total_weight
+	host.data = (u_char *) luaL_checklstring(L, 1, &host.data);
+	us = ngx_http_lua_upstream_find_upstream(L, &host);
+    if (us == NULL) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "upstream not found");
+		dd("upstream is null");
+        return 2;
+    }
 
-    lua_pushboolean(L, 1);
+	int diff = new_weight - peer->weight;
+    peer->weight = new_weight;
+    peer->effective_weight = new_weight;
+	peer->current_weight += diff;
+
+//	peers = us->peer.data;
+//	peers->total_weight += diff;
+//	peers->weighted = (peers->total_weight == peers->number);
+
     return 1;
 }
 
