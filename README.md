@@ -155,7 +155,7 @@ The return value is an array-like Lua table for all the primary peers. Each tabl
 
 get_backup_peers
 ----------------
-`syntax: peers = upstream.get_primary_peers(upstream_name)`
+`syntax: peers = upstream.get_backup_peers(upstream_name)`
 
 Get configurations for all the backup peers in the specified upstream group.
 
