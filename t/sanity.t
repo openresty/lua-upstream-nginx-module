@@ -179,17 +179,17 @@ upstream bar:
 === TEST 5: multi-peer servers
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
-    upstream sina {
-        server www.sina.com.cn;
+    upstream test {
+        server multi-ip-test.openresty.com;
     }
 --- config
     location /t {
         content_by_lua '
             local upstream = require "ngx.upstream"
             local ljson = require "ljson"
-            local srvs, err = upstream.get_servers("sina")
+            local srvs, err = upstream.get_servers("test")
             if not srvs then
-                ngx.say("failed to get sina: ", err)
+                ngx.say("failed to get test ", err)
                 return
             end
             ngx.say(ljson.encode(srvs))
@@ -208,15 +208,15 @@ upstream bar:
 === TEST 6: get primary peers: multi-peer servers
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
-    upstream sina {
-        server www.sina.com.cn;
+    upstream test {
+        server multi-ip-test.openresty.com;
     }
 --- config
     location /t {
         content_by_lua '
             local upstream = require "ngx.upstream"
             local ljson = require "ljson"
-            local peers, err = upstream.get_primary_peers("sina")
+            local peers, err = upstream.get_primary_peers("test")
             if not peers then
                 ngx.say("failed to get primary peers: ", err)
                 return
