@@ -320,11 +320,30 @@ ngx_http_lua_upstream_get_backup_peers(lua_State *L)
 static int
 ngx_http_lua_upstream_set_peer_down(lua_State *L)
 {
-    ngx_http_upstream_rr_peer_t          *peer;
+    ngx_uint_t                          id;
+    ngx_str_t                           host;
+    ngx_http_upstream_rr_peer_t         *peer;
+    ngx_http_upstream_server_t          *server;
+    ngx_http_upstream_srv_conf_t        *us;
 
     if (lua_gettop(L) != 4) {
         return luaL_error(L, "exactly 4 arguments expected");
     }
+
+    host.data = (u_char *) luaL_checklstring(L, 1, &host.len);
+
+    us = ngx_http_lua_upstream_find_upstream(L, &host);
+    if (us == NULL) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "upstream not found");
+        return 2;
+    }
+
+    server = us->servers->elts;
+
+    id = (ngx_uint_t) lua_tonumber(L, 3);
+
+    server[id].down = lua_toboolean(L, 4);
 
     peer = ngx_http_lua_upstream_lookup_peer(L);
     if (peer == NULL) {
