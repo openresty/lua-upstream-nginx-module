@@ -137,14 +137,14 @@ ngx_http_lua_upstream_add_server(lua_State * L)
         // consider pass default value.
         return luaL_error(L, "exactly five argument expected");
     }
-    
+
     r = ngx_http_lua_get_request(L);
     if (r == NULL) {
         lua_pushnil(L);
         lua_pushliteral(L, "get request error \n");
         return 2;
     }
-    
+
     host.data = (u_char *) luaL_checklstring(L, 1, &host.len);
 
     ngx_memzero(&u, sizeof (ngx_url_t));
@@ -154,8 +154,9 @@ ngx_http_lua_upstream_add_server(lua_State * L)
     weight = (ngx_int_t) luaL_checkint(L, 3);
     max_fails = (ngx_int_t) luaL_checkint(L, 4);
     fail_timeout = (time_t) luaL_checklong(L, 5);
-    ngx_log_error(NGX_LOG_EMERG,r->connection->log,0,"%s,%s,%d,%d,%d\n",host.data,u.url.data,weight,max_fails,fail_timeout);
-   
+#if (NGX_DEBUG)
+    ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0, "%s %s params: %s,%s,%d,%d,%d\n", __FILE__,__FUNCTION__, host.data, u.url.data, weight, max_fails, fail_timeout);
+#endif
     uscf = ngx_http_lua_upstream_find_upstream(L, &host);
     if (uscf == NULL) {
         lua_pushnil(L);
@@ -163,13 +164,6 @@ ngx_http_lua_upstream_add_server(lua_State * L)
         return 2;
     }
 
-    if (ngx_parse_url(r->pool, &u) != NGX_OK) {
-        if (u.err) {
-            lua_pushnil(L);
-            lua_pushliteral(L, "url parser error");
-            return 2;
-        }
-    }
 
     if (uscf->servers == NULL || uscf->servers->nelts == 0) {
         //TODO: 对于 默认的空upstream来讲，nginx当前会不允许其启动，可以考虑调整策略，允许此种情况下nginx启动
@@ -178,27 +172,33 @@ ngx_http_lua_upstream_add_server(lua_State * L)
         lua_newtable(L);
         return 2;
     } else {
+        if (ngx_parse_url(uscf->servers->pool, &u) != NGX_OK) {
+            if (u.err) {
+                lua_pushnil(L);
+                lua_pushliteral(L, "url parser error");
+                return 2;
+            }
+        }
+
         us = ngx_array_push(uscf->servers);
         if (us == NULL) {
             lua_pushliteral(L, "us push uscf->servers failed\n");
             return 3;
         }
-        
+        ngx_memzero(us, sizeof (ngx_http_upstream_server_t));
         us->host = u.host;
         ngx_str_null(&id);
-
+        us->id = id;
         us->addrs = u.addrs;
         us->naddrs = u.naddrs;
-        us->host = u.host;
         us->weight = weight;
         us->max_fails = max_fails;
         us->fail_timeout = fail_timeout;
-        us->id = id;
+
     }
 
     return 1;
 }
-
 
 static int
 ngx_http_lua_upstream_get_upstreams(lua_State * L)
@@ -268,14 +268,6 @@ ngx_http_lua_upstream_get_servers(lua_State * L)
     for (i = 0; i < us->servers->nelts; i++) {
 
         n = 4;
-        // for server marked "backup" or "down" ,also should be reported
-        //        if (server[i].backup) {
-        //            n++;
-        //        }
-        //
-        //        if (server[i].down) {
-        //            n++;
-        //        }
 
         if (server[i].backup) {
             n++;
@@ -626,105 +618,3 @@ ngx_http_lua_upstream_find_upstream(lua_State *L, ngx_str_t *host)
     return NULL;
 }
 
-
-//static int
-//ngx_http_lua_upstream_update_peer_addr(lua_State *L)
-//{
-//    ngx_str_t                       host, p;
-//    ngx_url_t                       url;
-//    ngx_uint_t                      id;
-//    ngx_http_request_t              *r;
-//    ngx_http_upstream_rr_peer_t     *peer;
-//    ngx_http_upstream_server_t      *server;
-//    ngx_http_upstream_srv_conf_t    *uscf;
-//
-//    if (lua_gettop(L) != 4) {
-//        return luaL_error(L, "exactly 4 arguments expected");
-//    }
-//
-//    host.data = (u_char *) luaL_checklstring(L, 1, &host.len);
-//
-//    uscf = ngx_http_lua_upstream_find_upstream(L, &host);
-//    if (uscf == NULL) {
-//        lua_pushnil(L);
-//        lua_pushliteral(L, "upstream not found");
-//        return 2;
-//    }
-//
-//    r = ngx_http_lua_get_request(L);
-//    if (r == NULL) {
-//        return luaL_error(L, "no request found");
-//    }
-//
-//    ngx_memzero(&url, sizeof(ngx_url_t));
-//
-//    url.url.data = (u_char *) lua_tolstring(L, 4, (size_t *) &url.url.len);
-//    url.default_port = 80;
-//    url.no_resolve = 1;
-//
-//    if (ngx_parse_url(r->pool, &url) != NGX_OK) {
-//        lua_pushnil(L);
-//
-//        if (url.err) {
-//            lua_pushfstring(L, "failed to parse host name \"%s\": %s",
-//                            url.url.data, url.err);
-//
-//        } else {
-//            lua_pushfstring(L, "failed to parse host name \"%s\"", url.url.data);
-//        }
-//
-//        return 2;
-//    }
-//
-//#if (NGX_DEBUG)
-//    u_char      text[NGX_SOCKADDR_STRLEN];
-//    ngx_str_t   addr;
-//    addr.data = text;
-//    if (url.addrs && url.addrs[0].sockaddr) {
-//        addr.len = ngx_sock_ntop(url.addrs[0].sockaddr, url.addrs[0].socklen,
-//                text, NGX_SOCKADDR_STRLEN, 0);
-//        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
-//                "set_peer_addr in lua_upstream_module set to %V", &addr);
-//    }
-//#endif
-//
-//    if (url.addrs && url.addrs[0].sockaddr) {
-//        peer = ngx_http_lua_upstream_lookup_peer(L);
-//        if (peer == NULL) {
-//            return 2;
-//        }
-//
-//        /* basically allocated pool size is the maximum length of ip address */
-//        p.data = peer->name.data;
-//        p.len = url.addrs[0].name.len;
-//
-//        if (uscf->servers && !uscf->port) {
-//            server = uscf->servers->elts;
-//
-//            id = (ngx_uint_t) lua_tonumber(L, 3);
-//
-//            ngx_memcpy(p.data, url.addrs[0].name.data, p.len);
-//
-//            server[id].addrs->name = p;
-//            peer->name = p;
-//            peer->server = p;
-//
-//            ngx_memcpy(peer->sockaddr, url.addrs[0].sockaddr, peer->socklen);
-//
-//            ngx_memcpy(server[id].addrs->sockaddr, url.addrs[0].sockaddr, server[id].addrs->socklen);
-//        } else {
-//            ngx_memcpy(p.data, url.addrs[0].name.data, p.len);
-//
-//            peer->name = p;
-//
-//            if (peer->server.data) {
-//                peer->server = p;
-//            }
-//
-//            ngx_memcpy(peer->sockaddr, url.addrs[0].sockaddr, peer->socklen);
-//        }
-//    } 
-//
-//    lua_pushboolean(L, 1);
-//    return 1;
-//}
