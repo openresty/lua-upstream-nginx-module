@@ -44,7 +44,6 @@ ngx-build $force $version \
             --add-module=$home/work/nginx/ngx_http_upstream_keepalive-0.7 \
           --with-select_module \
           --with-poll_module \
-          --with-rtsig_module \
           --with-debug
           #--add-module=/home/agentz/git/dodo/utils/dodo-hook \
           #--add-module=$home/work/ngx_http_auth_request-0.1 #\
