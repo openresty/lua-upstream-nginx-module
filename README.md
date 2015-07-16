@@ -217,7 +217,11 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
-* **1.5.x**                       (last tested: 1.5.12)
+* **1.9.x**  (last tested: 1.9.2)
+* **1.8.x**
+* **1.7.x**  (last tested: 1.7.10)
+* **1.6.x**
+* **1.5.x**  (last tested: 1.5.12)
 
 [Back to TOC](#table-of-contents)
 
