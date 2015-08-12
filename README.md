@@ -214,7 +214,7 @@ add_server
 `syntax: ok,err = upstream.add_server(upstream_name,ip:port,weight,max_fails,fail_timeout)`
 
  Add a server to upstream. if the server is exist will return err and notes the server is exist.     
- Warning:         
+ Warning:           
  `it also to add server to ngx_http_upstream_server_t structure ,so you should call add_peer.   
 [Back to TOC](#table-of-contents)
 
@@ -223,8 +223,13 @@ add_peer
 `syntax: ok,err = upstream.add_peer(upstream,ip:port)`
 
  Add a server to back-end peers. if back-end peers is exist will return err and notes the peer is exist. 
- it's suitable for ip_hash or round_robin.    
+ it's suitable for ip_hash or round_robin and least_conn.    
+ Warning:    
+ `if you are using a least_conn and you should update something to below`    
 
+ ```nginx
+ Modified macro variable 'NGX_HTTP_UPSTREAM_LEAST_CONN' 1 ,it's default 0 at 'lua-upstream-nginx-module/src/ngx_http_lua_upstream_module.h' file.
+ ```
 
 [Back to TOC](#table-of-contents)       
 
@@ -233,7 +238,7 @@ remove_server
 `syntax: ok,err = upstream.remove_server(upstream,ip:port)`
 
  Remove a server from upstream. if the server is not exist will return err and notes the server is not found.     
- Warning:         
+ Warning:             
  `it also to add server to ngx_http_upstream_server_t structure ,so you should call add_peer.   
 
 
@@ -244,8 +249,13 @@ remove_peer
 `syntax: ok,err = upstream.remove_peer(upstream,ip:port)`
 
  Remove a server to back-end peers. if back-end peers not exist will return err and notes the peer is not found. 
- it's suitable for ip_hash or round_robin.    
+ it's suitable for ip_hash or round_robin and least_conn.    
+ Warning:    
+ `if you are using a least_conn and you should update something to below`    
 
+ ```nginx
+ Modified macro variable 'NGX_HTTP_UPSTREAM_LEAST_CONN' 1 ,it's default 0 at 'lua-upstream-nginx-module/src/ngx_http_lua_upstream_module.h' file.
+ ```
 
 [Back to TOC](#table-of-contents)       
 
