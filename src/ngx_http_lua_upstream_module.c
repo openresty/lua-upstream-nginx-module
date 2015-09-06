@@ -240,8 +240,11 @@ ngx_http_lua_upstream_add_server(lua_State * L)
 
         us = ngx_array_push(uscf->servers);
         if (us == NULL) {
+            lua_pushnil(L);
             lua_pushliteral(L, "us push uscf->servers failed\n");
-            return 3;
+            return 2;
+            //lua_pushliteral(L, "us push uscf->servers failed\n");
+            //return 3;
         }
        
         ngx_memzero(us, sizeof (ngx_http_upstream_server_t));
@@ -254,6 +257,7 @@ ngx_http_lua_upstream_add_server(lua_State * L)
         us->fail_timeout = fail_timeout;
     }
 
+    lua_pushboolean(L, 1);
     return 1;
 }
 
@@ -365,6 +369,7 @@ ngx_http_lua_upstream_remove_server(lua_State * L)
     ngx_array_destroy(uscf->servers);
     uscf->servers = servers;
 
+    lua_pushboolean(L, 1);
     return 1;
 }
 
@@ -536,7 +541,7 @@ ngx_http_lua_upstream_add_peer(lua_State * L)
     conns[n-1] = 0;
     lcf->conns = conns;
 #endif
-
+    lua_pushboolean(L, 1);
     return 1;
 }
 
@@ -649,6 +654,7 @@ ngx_http_lua_upstream_remove_peer(lua_State * L)
         }
     }
 
+    lua_pushboolean(L, 1);
     return 1;
 }
 
