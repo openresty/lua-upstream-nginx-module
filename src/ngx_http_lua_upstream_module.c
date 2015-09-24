@@ -422,7 +422,8 @@ ngx_http_upstream_chash_cmp_points(const void *one, const void *two)
 }
 
 static void
-ngx_http_upstream_consistent_hash(ngx_http_upstream_rr_peer_t *peer, ngx_http_upstream_chash_points_t *points)
+ngx_http_upstream_consistent_hash(ngx_http_upstream_rr_peer_t *peer, 
+                                          ngx_http_upstream_chash_points_t *points)
 {
     ngx_str_t                             *server;
     u_char                                *host, *port, c;
@@ -499,7 +500,8 @@ ngx_http_upstream_consistent_hash(ngx_http_upstream_rr_peer_t *peer, ngx_http_up
 
 
 static int 
-ngx_http_lua_upstream_consistent_hash_init(lua_State * L, ngx_http_upstream_srv_conf_t *uscf)
+ngx_http_lua_upstream_consistent_hash_init(lua_State * L, 
+                                ngx_http_upstream_srv_conf_t *uscf)
 {
     ngx_uint_t                                npoints, i, j;
     ngx_http_upstream_chash_points_t         *points;
@@ -550,7 +552,8 @@ ngx_http_lua_upstream_consistent_hash_init(lua_State * L, ngx_http_upstream_srv_
 
 
 static int
-ngx_http_lua_upstream_remove_peer_chash(lua_State * L, ngx_http_upstream_srv_conf_t *us)
+ngx_http_lua_upstream_remove_peer_chash(lua_State * L, 
+                                 ngx_http_upstream_srv_conf_t *us)
 {
     ngx_uint_t                                npoints, i, j;
     ngx_http_upstream_rr_peer_t              *peer;
@@ -612,7 +615,8 @@ ngx_http_lua_upstream_remove_peer_chash(lua_State * L, ngx_http_upstream_srv_con
 #if (NGX_HTTP_UPSTREAM_LEAST_CONN)
 
 static int 
-ngx_http_lua_upstream_least_conn_init(lua_State * L, ngx_http_upstream_srv_conf_t *uscf, ngx_uint_t flag)
+ngx_http_lua_upstream_least_conn_init(lua_State * L, 
+                     ngx_http_upstream_srv_conf_t *uscf, ngx_uint_t flag)
 {
     ngx_http_upstream_rr_peers_t          *peers;
     ngx_http_upstream_least_conn_conf_t   *lcf;
@@ -976,7 +980,8 @@ ngx_http_lua_upstream_remove_peer(lua_State * L)
  * else return NULL.
 */
 static ngx_http_upstream_srv_conf_t *
-ngx_http_lua_upstream_check_peers(lua_State * L, ngx_url_t u, ngx_http_upstream_server_t ** srv)
+ngx_http_lua_upstream_check_peers(lua_State * L, ngx_url_t u, 
+                                              ngx_http_upstream_server_t ** srv)
 {
     ngx_http_upstream_srv_conf_t               *uscf;
     ngx_str_t                                   host;
