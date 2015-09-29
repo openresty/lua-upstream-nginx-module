@@ -120,6 +120,7 @@ The return value is an array-like Lua table. Each table entry is a hash-like Lua
 * backup
 * fail_timeout
 * max_fails
+* name
 * weight
 
 [Back to TOC](#table-of-contents)

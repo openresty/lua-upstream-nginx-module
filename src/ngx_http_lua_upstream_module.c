@@ -172,6 +172,10 @@ ngx_http_lua_upstream_get_servers(lua_State * L)
 
         n = 4;
 
+        if (server[i].name.len) {
+            n++;
+        }
+
         if (server[i].backup) {
             n++;
         }
@@ -181,6 +185,13 @@ ngx_http_lua_upstream_get_servers(lua_State * L)
         }
 
         lua_createtable(L, 0, n);
+
+        if (server[i].name.len) {
+            lua_pushliteral(L, "name");
+            lua_pushlstring(L, (char *) server[i].name.data,
+                            server[i].name.len);
+            lua_rawset(L, -3);
+        }
 
         lua_pushliteral(L, "addr");
 
