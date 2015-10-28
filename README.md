@@ -1,7 +1,7 @@
 Name
 ====
 
-ngx_lua_upstream - Nginx C module to expose Lua API to ngx_lua for Nginx upstreams
+ngx_http_lua_upstream - Nginx C module to expose Lua API to ngx_lua for Nginx upstreams
 
 Table of Contents
 =================
@@ -25,7 +25,7 @@ Table of Contents
 Status
 ======
 
-This module is still under active development and is considered production ready.
+This module is production ready.
 
 Synopsis
 ========
