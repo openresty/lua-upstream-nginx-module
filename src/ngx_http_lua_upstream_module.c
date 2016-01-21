@@ -438,6 +438,10 @@ ngx_http_lua_get_peer(lua_State *L, ngx_http_upstream_rr_peer_t *peer,
     lua_pushinteger(L, (lua_Integer) peer->effective_weight);
     lua_rawset(L, -3);
 
+    lua_pushliteral(L, "conns");
+    lua_pushinteger(L, (lua_Integer) peer->conns);
+    lua_rawset(L, -3);
+
     lua_pushliteral(L, "fails");
     lua_pushinteger(L, (lua_Integer) peer->fails);
     lua_rawset(L, -3);
