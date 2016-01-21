@@ -47,7 +47,7 @@ http {
         # sample output for the following /upstream interface:
         # upstream foo.com:
         #     addr = 127.0.0.1:80, weight = 4, fail_timeout = 53, max_fails = 100
-        #     addr = 106.187.41.147:81, weight = 1, fail_timeout = 10, max_fails = 1
+        #     addr = 106.184.1.99:81, weight = 1, fail_timeout = 10, max_fails = 1
         # upstream bar:
         #     addr = 127.0.0.2:80, weight = 1, fail_timeout = 10, max_fails = 1
 
