@@ -151,6 +151,9 @@ The return value is an array-like Lua table for all the primary peers. Each tabl
 * checked
 
     Timestamp for the last check (in seconds since the Epoch)
+* conns
+
+    Number of active connections to the peer.
 
 [Back to TOC](#table-of-contents)
 
