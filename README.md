@@ -15,6 +15,10 @@ Table of Contents
     * [get_primary_peers](#get_primary_peers)
     * [get_backup_peers](#get_backup_peers)
     * [set_peer_down](#set_peer_down)
+    * [add_server](#add_server)
+    * [add_peer](#add_peer)
+    * [remove_server](#remove_server)
+    * [remove_peer](#remove_peer)
 * [TODO](#todo)
 * [Compatibility](#compatibility)
 * [Installation](#installation)
@@ -206,23 +210,87 @@ You can turn on a peer again by providing a `false` value as the 4th argument.
 
 [Back to TOC](#table-of-contents)
 
+add_server
+-----------
+`syntax: ok,err = upstream.add_server(upstream_name,ip:port,weight,max_fails,fail_timeout)`
+
+Add a server to upstream. if the server is exist will return err and notes the server is exist.     
+Note that this method only add a server in the current Nginx worker process. 
+You need to synchronize the changes across all the Nginx workers if you want a server-wide change.
+Please useing [ngx_lua_upstream_dyusc]()
+
+ Warning:           
+ `it also to add server to ngx_http_upstream_server_t structure ,so you should call add_peer.   
+[Back to TOC](#table-of-contents)
+
+add_peer
+-----------
+`syntax: ok,err = upstream.add_peer(upstream,ip:port)`
+
+Add a server to back-end peers. if back-end peers is exist will return err and notes the peer is exist. 
+it's suitable for ip_hash or round_robin hash and least_conn.
+Note that this method only add a peer in the current Nginx worker process.
+You need to synchronize the changes across all the Nginx workers if you want a server-wide change.
+Please useing [ngx_lua_upstream_dyusc]()    
+ Warning:    
+ `if you are using a least_conn and you should update something to below`    
+
+ ```nginx
+ Modified macro variable 'NGX_HTTP_UPSTREAM_LEAST_CONN' 1 ,it's default 0 at 'lua-upstream-nginx-module/src/ngx_http_lua_upstream_module.h' file.
+ ```
+
+[Back to TOC](#table-of-contents)       
+
+remove_server
+-----------
+`syntax: ok,err = upstream.remove_server(upstream,ip:port)`
+
+Remove a server from upstream. if the server is not exist will return err and notes the server is not found.     
+Note that this method only remove a server in the current Nginx worker process.
+You need to synchronize the changes across all the Nginx workers if you want a server-wide change.
+Please useing [ngx_lua_upstream_dyusc]()
+ Warning:             
+ `it also to add server to ngx_http_upstream_server_t structure ,so you should call add_peer.   
+
+
+[Back to TOC](#table-of-contents)       
+
+remove_peer
+-----------
+`syntax: ok,err = upstream.remove_peer(upstream,ip:port)`
+
+Remove a server to back-end peers. if back-end peers not exist will return err and notes the peer is not found. 
+it's suitable for ip_hash or round_robin hash and least_conn.    
+Note that this method only remove a peer in the current Nginx worker process.
+You need to synchronize the changes across all the Nginx workers if you want a server-wide change.
+Please useing [ngx_lua_upstream_dyusc]()
+ Warning:    
+ `if you are using a least_conn and you should update something to below`    
+
+ ```nginx
+ Modified macro variable 'NGX_HTTP_UPSTREAM_LEAST_CONN' 1 ,it's default 0 at 'lua-upstream-nginx-module/src/ngx_http_lua_upstream_module.h' file.
+ ```
+
+[Back to TOC](#table-of-contents)       
+
+
+
+
 TODO
 ====
 
-* Add API to add or remove servers to existing upstream groups.
 
 [Back to TOC](#table-of-contents)
 
 Compatibility
 =============
 
-The following versions of Nginx should work with this module:
+The following versions of OpenResty should work with this module:
 
-* **1.9.x**  (last tested: 1.9.2)
-* **1.8.x**
-* **1.7.x**  (last tested: 1.7.10)
-* **1.6.x**
-* **1.5.x**  (last tested: 1.5.12)
+* **1.7.10.x**  (last tested: 1.7.10.2)
+* **1.7.7.x**   (last tested: 1.7.7.2)
+* **1.7.4.1**  
+* **1.7.2.1**  
 
 [Back to TOC](#table-of-contents)
 
