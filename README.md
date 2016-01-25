@@ -218,7 +218,7 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
-* **1.9.x**  (last tested: 1.9.2)
+* **1.9.x**  (last tested: 1.9.7)
 * **1.8.x**
 * **1.7.x**  (last tested: 1.7.10)
 * **1.6.x**
@@ -237,9 +237,9 @@ the version 1.5.12 (see [nginx compatibility](#compatibility)),
 3. and finally build the source with this module:
 
 ```bash
-wget 'http://nginx.org/download/nginx-1.5.12.tar.gz'
-tar -xzvf nginx-1.5.12.tar.gz
-cd nginx-1.5.12/
+wget 'http://nginx.org/download/nginx-1.9.7.tar.gz'
+tar -xzvf nginx-1.9.7.tar.gz
+cd nginx-1.9.7/
 
 # assuming your luajit is installed to /opt/luajit:
 export LUAJIT_LIB=/opt/luajit/lib
@@ -257,7 +257,7 @@ make -j2
 make install
 ```
 
-If you are using [ngx_openresty](http://openresty.org), then you can just add this module to OpenResty like this:
+If you are using [OpenResty](http://openresty.org), then you can just add this module to OpenResty like this:
 
 ```bash
 ./configure --add-module=/path/to/lua-upstream-nginx-module
@@ -281,7 +281,7 @@ Copyright and License
 
 This module is licensed under the BSD license.
 
-Copyright (C) 2014-2015, by Yichun "agentzh" Zhang, CloudFlare Inc.
+Copyright (C) 2014-2016, by Yichun "agentzh" Zhang, CloudFlare Inc.
 
 All rights reserved.
 
