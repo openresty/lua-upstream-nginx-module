@@ -15,6 +15,7 @@ Table of Contents
     * [get_primary_peers](#get_primary_peers)
     * [get_backup_peers](#get_backup_peers)
     * [set_peer_down](#set_peer_down)
+    * [current_upstream_name](#current_upstream_name)
 * [TODO](#todo)
 * [Compatibility](#compatibility)
 * [Installation](#installation)
@@ -206,6 +207,32 @@ upstream.set_peer_down("bar", true, 1, true)
 will turn down the backup peer corresponding to `server 127.0.0.4 ...`.
 
 You can turn on a peer again by providing a `false` value as the 4th argument.
+
+[Back to TOC](#table-of-contents)
+
+current_upstream_name
+---------------------
+`syntax: name = upstream.current_upstream_name()`
+
+Returns the name of the proxied upstream for the current request.
+If there is no upstream for this request (no `proxy_pass` call), or this
+function is called in a phase prior to the content phase, then the return value
+will be `nil`. If a port is explicitly included in the upstream definition or
+`proxy_pass` directive, it will be included in the return value of this function.
+
+Example:
+
+```lua
+-- upstream my_upstream { ... }
+-- proxy_pass http://my_upstream;
+upstream.current_upstream_name() --> my_upstream
+
+-- proxy_pass http://example.com:1234;
+upstream.current_upstream_name() --> example.com:1234
+```
+
+Note that implicit upstreams created by `proxy_pass` are included, contrary to
+the output of `upstream.get_upstreams()`.
 
 [Back to TOC](#table-of-contents)
 
