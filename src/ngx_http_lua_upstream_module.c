@@ -34,6 +34,7 @@ static ngx_http_upstream_srv_conf_t *
 static ngx_http_upstream_rr_peer_t *
     ngx_http_lua_upstream_lookup_peer(lua_State *L);
 static int ngx_http_lua_upstream_set_peer_down(lua_State * L);
+static int ngx_http_lua_upstream_current_upstream_name(lua_State *L);
 
 
 static ngx_http_module_t ngx_http_lua_upstream_ctx = {
@@ -81,7 +82,7 @@ ngx_http_lua_upstream_init(ngx_conf_t *cf)
 static int
 ngx_http_lua_upstream_create_module(lua_State * L)
 {
-    lua_createtable(L, 0, 1);
+    lua_createtable(L, 0, 6);
 
     lua_pushcfunction(L, ngx_http_lua_upstream_get_upstreams);
     lua_setfield(L, -2, "get_upstreams");
@@ -97,6 +98,9 @@ ngx_http_lua_upstream_create_module(lua_State * L)
 
     lua_pushcfunction(L, ngx_http_lua_upstream_set_peer_down);
     lua_setfield(L, -2, "set_peer_down");
+
+    lua_pushcfunction(L, ngx_http_lua_upstream_current_upstream_name);
+    lua_setfield(L, -2, "current_upstream_name");
 
     return 1;
 }
@@ -549,4 +553,44 @@ ngx_http_lua_upstream_find_upstream(lua_State *L, ngx_str_t *host)
     }
 
     return NULL;
+}
+
+
+static int
+ngx_http_lua_upstream_current_upstream_name(lua_State *L)
+{
+    ngx_http_request_t           *r;
+    ngx_http_upstream_t          *us;
+    ngx_http_upstream_conf_t     *ucf;
+    ngx_http_upstream_srv_conf_t *uscf;
+
+    r = ngx_http_lua_get_request(L);
+    if (r == NULL) {
+        return luaL_error(L, "no request object found");
+    }
+
+    us = r->upstream;
+    if (us == NULL) {
+        lua_pushnil(L); /* no proxying is being done */
+        return 1;
+    }
+
+    ucf = us->conf;
+    if (ucf == NULL) {
+        return luaL_error(L, "no conf for upstream");
+    }
+
+    uscf = ucf->upstream;
+    if (uscf == NULL) {
+        return luaL_error(L, "no srv conf for upstream");
+    }
+
+    lua_pushlstring(L, (char *) uscf->host.data, uscf->host.len);
+
+    if (uscf->port) {
+        lua_pushfstring(L, ":%d", (int) uscf->port);
+        lua_concat(L, 2);
+    }
+
+    return 1;
 }
