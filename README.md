@@ -153,7 +153,7 @@ The return value is an array-like Lua table for all the primary peers. Each tabl
     Timestamp for the last check (in seconds since the Epoch)
 * conns
 
-    Number of active connections to the peer.
+    Number of active connections to the peer (this requires NGINX 1.9.0 or above).
 
 [Back to TOC](#table-of-contents)
 
