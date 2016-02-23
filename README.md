@@ -260,16 +260,6 @@ make -j2
 make install
 ```
 
-If you are using [OpenResty](http://openresty.org), then you can just add this module to OpenResty like this:
-
-```bash
-./configure --add-module=/path/to/lua-upstream-nginx-module
-make -j2
-make install
-```
-
-And you are all set. This module will get bundled into OpenResty in the near future.
-
 [Back to TOC](#table-of-contents)
 
 Author
