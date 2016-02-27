@@ -920,10 +920,6 @@ ngx_http_lua_upstream_add_peer(lua_State * L)
 
         peers->single = 0;
         backup->single = 0;
-        if ( n == 0 ) {
-           backup->number = 0;
-           backup->total_weight = 0;
-        }
 
         peer.weight = us->weight; 
         peer.effective_weight = us->weight;
