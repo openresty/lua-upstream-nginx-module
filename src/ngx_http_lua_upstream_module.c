@@ -176,6 +176,10 @@ ngx_http_lua_upstream_get_servers(lua_State * L)
 
         n = 4;
 
+        if (server[i].name.len) {
+            n++;
+        }
+
         if (server[i].backup) {
             n++;
         }
@@ -185,6 +189,13 @@ ngx_http_lua_upstream_get_servers(lua_State * L)
         }
 
         lua_createtable(L, 0, n);
+
+        if (server[i].name.len) {
+            lua_pushliteral(L, "name");
+            lua_pushlstring(L, (char *) server[i].name.data,
+                            server[i].name.len);
+            lua_rawset(L, -3);
+        }
 
         lua_pushliteral(L, "addr");
 
@@ -474,6 +485,12 @@ ngx_http_lua_get_peer(lua_State *L, ngx_http_upstream_rr_peer_t *peer,
     lua_pushliteral(L, "effective_weight");
     lua_pushinteger(L, (lua_Integer) peer->effective_weight);
     lua_rawset(L, -3);
+
+#if (nginx_version >= 1009000)
+    lua_pushliteral(L, "conns");
+    lua_pushinteger(L, (lua_Integer) peer->conns);
+    lua_rawset(L, -3);
+#endif
 
     lua_pushliteral(L, "fails");
     lua_pushinteger(L, (lua_Integer) peer->fails);

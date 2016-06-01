@@ -1,7 +1,7 @@
 Name
 ====
 
-ngx_lua_upstream - Nginx C module to expose Lua API to ngx_lua for Nginx upstreams
+ngx_http_lua_upstream - Nginx C module to expose Lua API to ngx_lua for Nginx upstreams
 
 Table of Contents
 =================
@@ -25,7 +25,7 @@ Table of Contents
 Status
 ======
 
-This module is still under active development and is considered production ready.
+This module is production ready.
 
 Synopsis
 ========
@@ -47,7 +47,7 @@ http {
         # sample output for the following /upstream interface:
         # upstream foo.com:
         #     addr = 127.0.0.1:80, weight = 4, fail_timeout = 53, max_fails = 100
-        #     addr = 106.187.41.147:81, weight = 1, fail_timeout = 10, max_fails = 1
+        #     addr = 106.184.1.99:81, weight = 1, fail_timeout = 10, max_fails = 1
         # upstream bar:
         #     addr = 127.0.0.2:80, weight = 1, fail_timeout = 10, max_fails = 1
 
@@ -120,6 +120,7 @@ The return value is an array-like Lua table. Each table entry is a hash-like Lua
 * backup
 * fail_timeout
 * max_fails
+* name
 * weight
 
 [Back to TOC](#table-of-contents)
@@ -150,6 +151,9 @@ The return value is an array-like Lua table for all the primary peers. Each tabl
 * checked
 
     Timestamp for the last check (in seconds since the Epoch)
+* conns
+
+    Number of active connections to the peer (this requires NGINX 1.9.0 or above).
 
 [Back to TOC](#table-of-contents)
 
@@ -217,7 +221,11 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
-* **1.5.x**                       (last tested: 1.5.12)
+* **1.9.x**  (last tested: 1.9.7)
+* **1.8.x**
+* **1.7.x**  (last tested: 1.7.10)
+* **1.6.x**
+* **1.5.x**  (last tested: 1.5.12)
 
 [Back to TOC](#table-of-contents)
 
@@ -232,9 +240,9 @@ the version 1.5.12 (see [nginx compatibility](#compatibility)),
 3. and finally build the source with this module:
 
 ```bash
-wget 'http://nginx.org/download/nginx-1.5.12.tar.gz'
-tar -xzvf nginx-1.5.12.tar.gz
-cd nginx-1.5.12/
+wget 'http://nginx.org/download/nginx-1.9.7.tar.gz'
+tar -xzvf nginx-1.9.7.tar.gz
+cd nginx-1.9.7/
 
 # assuming your luajit is installed to /opt/luajit:
 export LUAJIT_LIB=/opt/luajit/lib
@@ -252,15 +260,13 @@ make -j2
 make install
 ```
 
-If you are using [ngx_openresty](http://openresty.org), then you can just add this module to OpenResty like this:
+Starting from NGINX 1.9.11, you can also compile this module as a dynamic module, by using the `--add-dynamic-module=PATH` option instead of `--add-module=PATH` on the
+`./configure` command line above. And then you can explicitly load the module in your `nginx.conf` via the [load_module](http://nginx.org/en/docs/ngx_core_module.html#load_module)
+directive, for example,
 
-```bash
-./configure --add-module=/path/to/lua-upstream-nginx-module
-make -j2
-make install
+```nginx
+load_module /path/to/modules/ngx_http_lua_upstream_module.so;
 ```
-
-And you are all set. This module will get bundled into OpenResty in the near future.
 
 [Back to TOC](#table-of-contents)
 
@@ -276,7 +282,7 @@ Copyright and License
 
 This module is licensed under the BSD license.
 
-Copyright (C) 2014, by Yichun "agentzh" Zhang, CloudFlare Inc.
+Copyright (C) 2014-2016, by Yichun "agentzh" Zhang, CloudFlare Inc.
 
 All rights reserved.
 
