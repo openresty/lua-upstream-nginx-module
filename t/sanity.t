@@ -564,3 +564,73 @@ upstream 127.0.0.1:1130:
 --- no_error_log
 [error]
 
+=== TEST 15: add server with upstream
+--- http_config
+     upstream foo.com {
+        server 127.0.0.1 fail_timeout=53 weight=4 max_fails=100;
+        server agentzh.org:81;
+    }
+
+    upstream bar {
+        server 127.0.0.2;
+    }
+--- config
+
+    location  /add_server {
+
+                default_type text/plain;
+                content_by_lua '
+
+                        local concat = table.concat
+                        local upstream = require "ngx.upstream"
+                        local get_servers = upstream.get_servers
+                        local get_upstreams = upstream.get_upstreams
+                        local add_server = upstream.add_server
+
+                        local args =  ngx.req.get_uri_args()
+                        local upstream_name
+
+                        upstream_name = args["upstream"]
+                        local server_ip = args["ip"]
+                        local server_port = args["port"]
+                        local weight = 1
+                        local max_fails = 10
+                        local fail_timeout = 10
+
+
+                        local err = add_server("bar",server_ip..":"..server_port,weight,max_fails,fail_timeout)
+
+                        local srvs, err = get_servers(upstream_name)
+                        if not srvs then
+                                ngx.say("failed to get servers in upstream ", upstream_name)
+                        else
+                                for _, srv in ipairs(srvs) do
+                                        local first = true
+                                        for k, v in pairs(srv) do
+                                                if first then
+                                                        first = false
+                                                        ngx.print("    ")
+                                                else
+                                                        ngx.print(", ")
+                                                end
+                                                if type(v) == "table" then
+                                                        ngx.print(k, " = {", concat(v, ", "), "}")
+                                                else
+                                                        ngx.print(k, " = ", v)
+                                                end
+                                        end
+                                        ngx.print("\\n")
+                                end
+                        end
+
+
+                ';
+        }
+--- request
+    GET /add_server?upstream=bar&ip=127.0.0.9&port=12855
+--- response_body
+    fail_timeout = 10, addr = 127.0.0.2:80, max_fails = 1, weight = 1
+    fail_timeout = 10, addr = 127.0.0.9:12855, max_fails = 10, weight = 1
+
+--- no_error_log
+[error]

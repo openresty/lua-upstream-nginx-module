@@ -1,0 +1,5 @@
+break ngx_http_lua_upstream_get_upstreams
+break ngx_http_lua_upstream_get_upstream_main_conf
+break ngx_http_lua_upstream_get_servers
+break ngx_http_lua_upstream_find_upstream
+break ngx_http_lua_upstream_add_server
