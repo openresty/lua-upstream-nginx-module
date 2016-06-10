@@ -34,7 +34,7 @@ static ngx_http_upstream_srv_conf_t *
 static ngx_http_upstream_rr_peer_t *
     ngx_http_lua_upstream_lookup_peer(lua_State *L);
 static int ngx_http_lua_upstream_set_peer_down(lua_State * L);
-static int ngx_http_lua_upstream_get_chosen_peer(lua_State * L);
+static int ngx_http_lua_upstream_get_next_peer(lua_State * L);
 
 
 static ngx_http_module_t ngx_http_lua_upstream_ctx = {
@@ -99,8 +99,8 @@ ngx_http_lua_upstream_create_module(lua_State * L)
     lua_pushcfunction(L, ngx_http_lua_upstream_set_peer_down);
     lua_setfield(L, -2, "set_peer_down");
 
-    lua_pushcfunction(L, ngx_http_lua_upstream_get_chosen_peer);
-    lua_setfield(L, -2, "get_chosen_peer");
+    lua_pushcfunction(L, ngx_http_lua_upstream_get_next_peer);
+    lua_setfield(L, -2, "get_next_peer");
 
     return 1;
 }
@@ -354,7 +354,7 @@ ngx_http_lua_upstream_set_peer_down(lua_State * L)
 
 
 static int
-ngx_http_lua_upstream_get_chosen_peer(lua_State * L)
+ngx_http_lua_upstream_get_next_peer(lua_State * L)
 {
     ngx_str_t                           host;
     ngx_http_upstream_srv_conf_t       *us;
@@ -378,22 +378,38 @@ ngx_http_lua_upstream_get_chosen_peer(lua_State * L)
 
     r = ngx_http_lua_get_request(L);
 
-    // we create a fake request object, which we will use to fetch the upstream
-    // peer, because we don't want to pollute the current request object
+    /* we create a fake request object, which we will use to fetch the upstream
+     * peer, because we don't want to pollute the current request object */
     fake_r = ngx_pcalloc(r->pool, sizeof(ngx_http_request_t));
+    if (fake_r == NULL) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "out of memory");
+        return 2;
+    }
+
     fake_r->pool = r->pool;
     fake_r->connection = r->connection;
-    ngx_http_upstream_create(fake_r);   // setup fake_r->upstream
+    rc = ngx_http_upstream_create(fake_r);   /* setup fake_r->upstream */
+    if (rc != NGX_OK) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "error, could not determine next peer");
+        return 2;
+    }
 
-    // calls the configured peer chooser module (ip_hash/hash/round-robin) init
-    // function, which sets up fake_r->upstream->peer
-    us->peer.init(fake_r, us);
+    /* calls the configured peer chooser module (ip_hash/hash/round-robin) init
+     * function, which sets up fake_r->upstream->peer */
+    rc = us->peer.init(fake_r, us);
+    if (rc != NGX_OK) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "error, could not determine next peer");
+        return 2;
+    }
 
     peer = &fake_r->upstream->peer;
     rc = peer->get(peer, peer->data);
     if (rc != NGX_OK) {
         lua_pushnil(L);
-        lua_pushliteral(L, "error, could not determine chosen peer");
+        lua_pushliteral(L, "error, could not determine next peer");
         return 2;
     }
 

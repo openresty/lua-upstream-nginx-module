@@ -564,3 +564,106 @@ upstream 127.0.0.1:1130:
 --- no_error_log
 [error]
 
+
+=== TEST 15: get_next_peer() - round robin load balancer
+--- http_config
+    upstream test_upstream {
+        server 127.0.0.1:1190;
+        server 127.0.0.2:1110;
+        server 127.0.0.3:1130;
+    }
+--- config
+    location /upstream {
+        proxy_pass http://test_upstream;
+    }
+    location /t {
+        content_by_lua '
+                local upstream = require "ngx.upstream"
+                local peer = upstream.get_next_peer("test_upstream")
+                ngx.print(peer)
+        ';
+    }
+--- request
+    GET /t
+--- response_body_like: 127.0.0.[123]:11[139]0
+--- no_error_log
+[error]
+
+
+=== TEST 16: get_next_peer() - hash load balancer
+--- http_config
+    upstream test_upstream {
+        hash abcd123;
+        server 127.0.0.1:1190;
+        server 127.0.0.2:1110;
+        server 127.0.0.3:1130;
+    }
+--- config
+    location /upstream {
+        proxy_pass http://test_upstream;
+    }
+    location /t {
+        content_by_lua '
+                local upstream = require "ngx.upstream"
+                local peer = upstream.get_next_peer("test_upstream")
+                ngx.print(peer)
+        ';
+    }
+--- request
+    GET /t
+--- response_body: 127.0.0.3:1130
+--- no_error_log
+[error]
+
+
+=== TEST 17: get_next_peer() - hash (ketama) load balancer
+--- http_config
+    upstream test_upstream {
+        hash abcd123 consistent;
+        server 127.0.0.1:1190;
+        server 127.0.0.2:1110;
+        server 127.0.0.3:1130;
+    }
+--- config
+    location /upstream {
+        proxy_pass http://test_upstream;
+    }
+    location /t {
+        content_by_lua '
+                local upstream = require "ngx.upstream"
+                local peer = upstream.get_next_peer("test_upstream")
+                ngx.print(peer)
+        ';
+    }
+--- request
+    GET /t
+--- response_body: 127.0.0.3:1130
+--- no_error_log
+[error]
+
+
+=== TEST 18: get_next_peer() - ip_hash load balancer
+--- http_config
+    upstream test_upstream {
+        ip_hash;
+        server 127.0.0.1:1190;
+        server 127.0.0.2:1110;
+        server 127.0.0.3:1130;
+    }
+--- config
+    location /upstream {
+        proxy_pass http://test_upstream;
+    }
+    location /t {
+        content_by_lua '
+                local upstream = require "ngx.upstream"
+                local peer = upstream.get_next_peer("test_upstream")
+                ngx.print(peer)
+        ';
+    }
+--- request
+    GET /t
+--- response_body: 127.0.0.3:1130
+--- no_error_log
+[error]
+
