@@ -564,3 +564,37 @@ upstream 127.0.0.1:1130:
 --- no_error_log
 [error]
 
+=== TEST 15: set peer weight
+--- http_config
+    $TEST_NGINX_MY_INIT_CONFIG
+    upstream bar {
+        server 127.0.0.2 weight=2;
+        server 127.0.0.3 weight=3;
+        server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
+    }
+--- config
+    location /t {
+        content_by_lua '
+            local upstream = require "ngx.upstream"
+            local ljson = require "ljson"
+            local u = "bar"
+            local ok, err = upstream.set_peer_weight(u, false, 0, 1)
+            if not ok then
+                ngx.say("failed to set peer weight: ", err)
+                return
+            end
+
+            local peers, err = upstream.get_primary_peers(u)
+            if not peers then
+                ngx.say("failed to get peers: ", err)
+                return
+            end
+            ngx.say(ljson.encode(peers))
+        ';
+    }
+--- request
+    GET /t
+--- response_body
+[{"current_weight":-1,"effective_weight":1,"fail_timeout":10,"fails":0,"id":0,"max_fails":1,"name":"127.0.0.2:80","weight":1},{"current_weight":0,"effective_weight":3,"fail_timeout":10,"fails":0,"id":1,"max_fails":1,"name":"127.0.0.3:80","weight":3}]
+--- no_error_log
+[error]
