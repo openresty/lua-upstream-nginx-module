@@ -359,7 +359,7 @@ ngx_http_lua_upstream_get_next_peer(lua_State * L)
     ngx_str_t                           host;
     ngx_http_upstream_srv_conf_t       *us;
     ngx_http_request_t                 *r;
-    ngx_http_request_t                 *fake_r;
+    ngx_http_request_t                  fake_r;
     ngx_peer_connection_t              *peer;
     int                                 rc;
 
@@ -380,36 +380,30 @@ ngx_http_lua_upstream_get_next_peer(lua_State * L)
 
     /* we create a fake request object, which we will use to fetch the upstream
      * peer, because we don't want to pollute the current request object */
-    fake_r = ngx_pcalloc(r->pool, sizeof(ngx_http_request_t));
-    if (fake_r == NULL) {
-        lua_pushnil(L);
-        lua_pushliteral(L, "out of memory");
-        return 2;
-    }
-
-    fake_r->pool = r->pool;
-    fake_r->connection = r->connection;
-    rc = ngx_http_upstream_create(fake_r);   /* setup fake_r->upstream */
+    ngx_memzero(&fake_r, sizeof(ngx_http_request_t));
+    fake_r.pool = r->pool;
+    fake_r.connection = r->connection;
+    rc = ngx_http_upstream_create(&fake_r);   /* setup fake_r.upstream */
     if (rc != NGX_OK) {
         lua_pushnil(L);
-        lua_pushliteral(L, "error, could not determine next peer");
+        lua_pushliteral(L, "could not determine next peer");
         return 2;
     }
 
     /* calls the configured peer chooser module (ip_hash/hash/round-robin) init
-     * function, which sets up fake_r->upstream->peer */
-    rc = us->peer.init(fake_r, us);
+     * function, which sets up fake_r.upstream->peer */
+    rc = us->peer.init(&fake_r, us);
     if (rc != NGX_OK) {
         lua_pushnil(L);
-        lua_pushliteral(L, "error, could not determine next peer");
+        lua_pushliteral(L, "could not determine next peer");
         return 2;
     }
 
-    peer = &fake_r->upstream->peer;
+    peer = &fake_r.upstream->peer;
     rc = peer->get(peer, peer->data);
     if (rc != NGX_OK) {
         lua_pushnil(L);
-        lua_pushliteral(L, "error, could not determine next peer");
+        lua_pushliteral(L, "could not determine next peer");
         return 2;
     }
 
