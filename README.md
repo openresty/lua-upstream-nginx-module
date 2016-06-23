@@ -14,6 +14,7 @@ Table of Contents
     * [get_servers](#get_servers)
     * [get_primary_peers](#get_primary_peers)
     * [get_backup_peers](#get_backup_peers)
+    * [get_next_peer](#get_next_peer)
     * [set_peer_down](#set_peer_down)
 * [TODO](#todo)
 * [Compatibility](#compatibility)
@@ -164,6 +165,14 @@ get_backup_peers
 Get configurations for all the backup peers in the specified upstream group.
 
 The return value has the same structure as [get_primary_peers](#get_primary_peers) function.
+
+[Back to TOC](#table-of-contents)
+
+get_next_peer
+----------------
+`syntax: peer_name = upstream.get_next_peer(upstream_name)`
+
+Returns the name (socket address) of the peer that nginx would choose for the given upstream.
 
 [Back to TOC](#table-of-contents)
 
