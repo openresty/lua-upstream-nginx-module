@@ -377,6 +377,11 @@ ngx_http_lua_upstream_get_next_peer(lua_State * L)
     }
 
     r = ngx_http_lua_get_request(L);
+    if (r == NULL) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "request not available");
+        return 2;
+    }
 
     /* we create a fake request object, which we will use to fetch the upstream
      * peer, because we don't want to pollute the current request object */
@@ -386,7 +391,7 @@ ngx_http_lua_upstream_get_next_peer(lua_State * L)
     rc = ngx_http_upstream_create(&fake_r);   /* setup fake_r.upstream */
     if (rc != NGX_OK) {
         lua_pushnil(L);
-        lua_pushliteral(L, "could not determine next peer");
+        lua_pushliteral(L, "could not create upstream");
         return 2;
     }
 
@@ -395,7 +400,7 @@ ngx_http_lua_upstream_get_next_peer(lua_State * L)
     rc = us->peer.init(&fake_r, us);
     if (rc != NGX_OK) {
         lua_pushnil(L);
-        lua_pushliteral(L, "could not determine next peer");
+        lua_pushliteral(L, "could not initialize upstream peer");
         return 2;
     }
 
@@ -403,11 +408,12 @@ ngx_http_lua_upstream_get_next_peer(lua_State * L)
     rc = peer->get(peer, peer->data);
     if (rc != NGX_OK) {
         lua_pushnil(L);
-        lua_pushliteral(L, "could not determine next peer");
+        lua_pushliteral(L, "could not get next peer");
         return 2;
     }
 
     lua_pushlstring(L, (char *) peer->name->data, peer->name->len);
+    peer->free(peer, peer->data, 0);
     return 1;
 }
 
