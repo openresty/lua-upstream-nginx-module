@@ -404,6 +404,10 @@ ngx_http_lua_get_peer(lua_State *L, ngx_http_upstream_rr_peer_t *peer,
 
     n = 8;
 
+#if (nginx_version >= 1009000)
+    n++;
+#endif
+
     if (peer->down) {
         n++;
     }
