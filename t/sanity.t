@@ -564,3 +564,87 @@ upstream 127.0.0.1:1130:
 --- no_error_log
 [error]
 
+
+
+=== TEST 15: upstream_name with valid explicit upstream
+--- http_config
+    upstream some_upstream {
+        server 127.0.0.1:$TEST_NGINX_SERVER_PORT;
+    }
+--- config
+    log_by_lua_block {
+        local upstream = require "ngx.upstream"
+        ngx.log(ngx.INFO, "upstream = " .. tostring(upstream.current_upstream_name()))
+    }
+    location /test {
+        proxy_pass http://some_upstream/back;
+    }
+    location /back {
+        echo ok;
+    }
+--- request
+GET /test
+--- response_body
+ok
+--- log_level: info
+--- error_log eval
+qr/upstream = some_upstream/
+
+
+
+=== TEST 16: upstream_name with valid implicit upstream
+--- config
+    log_by_lua_block {
+        local upstream = require "ngx.upstream"
+        ngx.log(ngx.INFO, "upstream = " .. tostring(upstream.current_upstream_name()))
+    }
+    location /test {
+        proxy_pass http://127.0.0.1:$TEST_NGINX_SERVER_PORT/back;
+    }
+    location /back {
+        echo ok;
+    }
+--- request
+GET /test
+--- response_body
+ok
+--- log_level: info
+--- error_log eval
+qr/upstream = 127.0.0.1:\d+/
+
+
+
+=== TEST 17: upstream_name with no proxy_pass
+--- config
+    log_by_lua_block {
+        local upstream = require "ngx.upstream"
+        ngx.log(ngx.INFO, "upstream = " .. tostring(upstream.current_upstream_name()))
+    }
+    location /test {
+        echo ok;
+    }
+--- request
+GET /test
+--- response_body
+ok
+--- log_level: info
+--- error_log eval
+qr/upstream = nil/
+
+
+
+=== TEST 18: upstream_name in content_by_lua
+--- config
+    location /test {
+        content_by_lua_block {
+            local upstream = require "ngx.upstream"
+            ngx.say(upstream.current_upstream_name())
+        }
+    }
+--- request
+GET /test
+--- response_body
+nil
+--- no_error_log
+[error]
+
