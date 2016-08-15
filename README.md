@@ -248,7 +248,9 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
-* **1.9.x**  (last tested: 1.9.7)
+* **1.11.x** (last tested: 1.11.2)
+* **1.10.x**
+* **1.9.x**  (last tested: 1.9.15)
 * **1.8.x**
 * **1.7.x**  (last tested: 1.7.10)
 * **1.6.x**
@@ -262,14 +264,14 @@ Installation
 This module is bundled and enabled by default in the [OpenResty](http://openresty.org) bundle. And you are recommended to use OpenResty.
 
 1. Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
-the version 1.5.12 (see [nginx compatibility](#compatibility)),
+the version 1.11.2 (see [nginx compatibility](#compatibility)),
 2. then grab the source code of the [ngx_lua](https://github.com/openresty/lua-nginx-module#installation) as well as its dependencies like [LuaJIT](http://luajit.org/download.html).
 3. and finally build the source with this module:
 
 ```bash
-wget 'http://nginx.org/download/nginx-1.9.7.tar.gz'
-tar -xzvf nginx-1.9.7.tar.gz
-cd nginx-1.9.7/
+wget 'http://nginx.org/download/nginx-1.11.2.tar.gz'
+tar -xzvf nginx-1.11.2.tar.gz
+cd nginx-1.11.2/
 
 # assuming your luajit is installed to /opt/luajit:
 export LUAJIT_LIB=/opt/luajit/lib
