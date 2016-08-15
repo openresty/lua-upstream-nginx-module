@@ -54,7 +54,7 @@ http {
 
         location = /upstreams {
             default_type text/plain;
-            content_by_lua '
+            content_by_lua_block {
                 local concat = table.concat
                 local upstream = require "ngx.upstream"
                 local get_servers = upstream.get_servers
@@ -82,11 +82,11 @@ http {
                                     ngx.print(k, " = ", v)
                                 end
                             end
-                            ngx.print("\\n")
+                            ngx.print("\n")
                         end
                     end
                 end
-            ';
+            }
         }
     }
 }
