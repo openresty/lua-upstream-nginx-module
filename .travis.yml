@@ -6,8 +6,21 @@ os: linux
 language: c
 
 cache:
+  apt: true
   directories:
   - download-cache
+
+addons:
+  apt:
+    packages:
+    - axel
+    - cpanminus
+    - libtest-base-perl
+    - libtext-diff-perl
+    - liburi-perl
+    - libwww-perl
+    - libtest-longstring-perl
+    - liblist-moreutils-perl
 
 compiler:
   - gcc
@@ -29,9 +42,6 @@ env:
 
 services:
  - redis-server
-
-before_install:
-  - sudo apt-get install -qq -y axel cpanminus libtest-base-perl libtext-diff-perl liburi-perl libwww-perl libtest-longstring-perl liblist-moreutils-perl > build.log 2>&1 || (cat build.log && exit 1)
 
 install:
   - echo $HOME
