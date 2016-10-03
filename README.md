@@ -127,7 +127,7 @@ The return value is an array-like Lua table. Each table entry is a hash-like Lua
 [Back to TOC](#table-of-contents)
 
 get_primary_peers
----------
+-----------------
 `syntax: peers = upstream.get_primary_peers(upstream_name)`
 
 Get configurations for all the primary (non-backup) peers in the specified upstream group.
