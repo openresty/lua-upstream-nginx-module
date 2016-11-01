@@ -51,8 +51,9 @@ __DATA__
             local weight = 2
             local max_fails = 10
             local fail_timeout = 10
+            local is_backup = false
 
-            local str,err = add_server("bar",server_ip..":"..server_port,weight,max_fails,fail_timeout)
+            local str,err = add_server("bar",server_ip..":"..server_port,weight,max_fails,fail_timeout,is_backup)
             if not str then
                ngx.say("the server is exist :",server_ip..":"..server_port)
             end

@@ -211,7 +211,7 @@ You can turn on a peer again by providing a `false` value as the 4th argument.
 
 add_server
 -----------
-`syntax: ok,err = upstream.add_server(upstream_name,ip:port,weight,max_fails,fail_timeout)`
+`syntax: ok,err = upstream.add_server(upstream_name,ip:port,weight,max_fails,fail_timeout,is_backup)`
 
 Add a server to upstream. if the server is exist will return err and notes the server is exist.     
 Note that this method only add a server in the current Nginx worker process. 
