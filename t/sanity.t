@@ -129,7 +129,7 @@ failed to get servers: upstream not found
 --- config
     location = /upstreams {
         default_type text/plain;
-        content_by_lua '
+        content_by_lua_block {
             local concat = table.concat
             local upstream = require "ngx.upstream"
             local get_servers = upstream.get_servers
@@ -144,7 +144,15 @@ failed to get servers: upstream not found
                 else
                     for _, srv in ipairs(srvs) do
                         local first = true
-                        for k, v in pairs(srv) do
+                        local i = 0
+                        local keys = {}
+                        for k, _ in pairs(srv) do
+                            i = i + 1
+                            keys[i] = k
+                        end
+                        table.sort(keys)
+                        for _, k in ipairs(keys) do
+                            local v = srv[k]
                             if first then
                                 first = false
                                 ngx.print("    ")
@@ -157,20 +165,20 @@ failed to get servers: upstream not found
                                 ngx.print(k, " = ", v)
                             end
                         end
-                        ngx.print("\\n")
+                        ngx.print("\n")
                     end
                 end
             end
-        ';
+        }
     }
 --- request
     GET /upstreams
 --- response_body
 upstream foo.com:
-    addr = 127.0.0.1:80, weight = 4, fail_timeout = 53, name = 127.0.0.1, max_fails = 100
-    addr = 106.184.1.99:81, weight = 1, fail_timeout = 10, name = agentzh.org:81, max_fails = 1
+    addr = 127.0.0.1:80, fail_timeout = 53, max_fails = 100, name = 127.0.0.1, weight = 4
+    addr = 106.184.1.99:81, fail_timeout = 10, max_fails = 1, name = agentzh.org:81, weight = 1
 upstream bar:
-    addr = 127.0.0.2:80, weight = 1, fail_timeout = 10, name = 127.0.0.2, max_fails = 1
+    addr = 127.0.0.2:80, fail_timeout = 10, max_fails = 1, name = 127.0.0.2, weight = 1
 --- no_error_log
 [error]
 
@@ -517,49 +525,57 @@ failed to set peer down: bad peer id
     }
 
     location /t {
-        content_by_lua '
-                local concat = table.concat
-                local upstream = require "ngx.upstream"
-                local get_servers = upstream.get_servers
-                local get_upstreams = upstream.get_upstreams
+        content_by_lua_block {
+            local concat = table.concat
+            local upstream = require "ngx.upstream"
+            local get_servers = upstream.get_servers
+            local get_upstreams = upstream.get_upstreams
 
-                local us = get_upstreams()
-                for _, u in ipairs(us) do
-                    ngx.say("upstream ", u, ":")
-                    local srvs, err = get_servers(u)
-                    if not srvs then
-                        ngx.say("failed to get servers in upstream ", u)
-                    else
-                        for _, srv in ipairs(srvs) do
-                            local first = true
-                            for k, v in pairs(srv) do
-                                if first then
-                                    first = false
-                                    ngx.print("    ")
-                                else
-                                    ngx.print(", ")
-                                end
-                                if type(v) == "table" then
-                                    ngx.print(k, " = {", concat(v, ", "), "}")
-                                else
-                                    ngx.print(k, " = ", v)
-                                end
-                            end
-                            ngx.print("\\n")
+            local us = get_upstreams()
+            for _, u in ipairs(us) do
+                ngx.say("upstream ", u, ":")
+                local srvs, err = get_servers(u)
+                if not srvs then
+                    ngx.say("failed to get servers in upstream ", u)
+                else
+                    for _, srv in ipairs(srvs) do
+                        local first = true
+                        local i = 0
+                        local keys = {}
+                        for k, _ in pairs(srv) do
+                            i = i + 1
+                            keys[i] = k
                         end
+                        table.sort(keys)
+                        for _, k in ipairs(keys) do
+                            local v = srv[k]
+                            if first then
+                                first = false
+                                ngx.print("    ")
+                            else
+                                ngx.print(", ")
+                            end
+                            if type(v) == "table" then
+                                ngx.print(k, " = {", concat(v, ", "), "}")
+                            else
+                                ngx.print(k, " = ", v)
+                            end
+                        end
+                        ngx.print("\n")
                     end
                 end
-        ';
+            end
+        }
     }
 --- request
     GET /t
 --- response_body
 upstream 127.0.0.1:1190:
-    addr = 127.0.0.1:1190, weight = 0, fail_timeout = 0, max_fails = 0
+    addr = 127.0.0.1:1190, fail_timeout = 0, max_fails = 0, weight = 0
 upstream 127.0.0.2:1110:
-    addr = 127.0.0.2:1110, weight = 0, fail_timeout = 0, max_fails = 0
+    addr = 127.0.0.2:1110, fail_timeout = 0, max_fails = 0, weight = 0
 upstream 127.0.0.1:1130:
-    addr = 127.0.0.1:1130, weight = 0, fail_timeout = 0, max_fails = 0
+    addr = 127.0.0.1:1130, fail_timeout = 0, max_fails = 0, weight = 0
 
 --- no_error_log
 [error]
