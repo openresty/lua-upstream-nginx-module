@@ -348,6 +348,12 @@ ngx_http_lua_upstream_set_peer_down(lua_State * L)
 
     peer->down = lua_toboolean(L, 4);
 
+    /* mark peer live if turned up */
+
+    if (!peer->down) {
+        peer->fails = 0;
+    }
+
     lua_pushboolean(L, 1);
     return 1;
 }
