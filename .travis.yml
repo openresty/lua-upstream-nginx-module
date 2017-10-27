@@ -37,8 +37,8 @@ env:
     - JOBS=3
     - NGX_BUILD_JOBS=$JOBS
   matrix:
-    - NGINX_VERSION=1.9.15
     - NGINX_VERSION=1.11.2
+    - NGINX_VERSION=1.13.6
 
 services:
  - redis-server
