@@ -2,22 +2,39 @@
 
 # this file is mostly meant to be used by the author himself.
 
+#set -x
+
 root=`pwd`
 version=$1
 home=~
 force=$2
 
 ngx_redis_version=0.3.7
+cd $home/work/nginx/ || exit 1
 ngx_redis_path=$home/work/nginx/ngx_http_redis-$ngx_redis_version
+rm -rf $ngx_redis_path || exit 1
+tar -xzvf ngx_http_redis-$ngx_redis_version.tar.gz || exit 1
 
 cd $ngx_redis_path || exit 1
+
 patch_file=$root/../openresty/patches/ngx_http_redis-$ngx_redis_version-variables_in_redis_pass.patch
 if [ ! -f $patch_file ]; then
     echo "$patch_file: No such file" > /dev/stderr
     exit 1
 fi
 # we ignore any errors here since the target directory might have already been patched.
-patch --forward -p1 < $patch_file
+patch -p1 < $patch_file || exit 1
+
+cd $ngx_redis_path || exit 1
+
+patch_file=$root/../openresty/patches/ngx_http_redis-$ngx_redis_version-default_port_fix.patch
+if [ ! -f $patch_file ]; then
+    echo "$patch_file: No such file" > /dev/stderr
+    exit 1
+fi
+# we ignore any errors here since the target directory might have already been patched.
+patch -p1 < $patch_file || exit 1
+
 cd $root || exit 1
 
             #--without-http_memcached_module \
