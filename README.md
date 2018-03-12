@@ -111,7 +111,7 @@ get_servers
 -----------
 `syntax: servers = upstream.get_servers(upstream_name)`
 
-Get configurations for all the servers in the specified upstream group. Please one server may take multiple addresses when its server name can be resolved to multiple addresses.
+Get configurations for all the servers in the specified upstream group. Please note that one server may take multiple addresses when its server name can be resolved to multiple addresses.
 
 The return value is an array-like Lua table. Each table entry is a hash-like Lua table that takes the following keys:
 
