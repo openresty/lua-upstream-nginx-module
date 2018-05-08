@@ -109,7 +109,7 @@ Note that implicit upstream groups created by `proxy_pass` and etc are excluded.
 
 get_servers
 -----------
-`syntax: servers = upstream.get_servers(upstream_name)`
+`syntax: servers, err = upstream.get_servers(upstream_name)`
 
 Get configurations for all the servers in the specified upstream group. Please note that one server may take multiple addresses when its server name can be resolved to multiple addresses.
 
@@ -128,7 +128,7 @@ The return value is an array-like Lua table. Each table entry is a hash-like Lua
 
 get_primary_peers
 -----------------
-`syntax: peers = upstream.get_primary_peers(upstream_name)`
+`syntax: peers, err = upstream.get_primary_peers(upstream_name)`
 
 Get configurations for all the primary (non-backup) peers in the specified upstream group.
 
@@ -163,7 +163,7 @@ The return value is an array-like Lua table for all the primary peers. Each tabl
 
 get_backup_peers
 ----------------
-`syntax: peers = upstream.get_backup_peers(upstream_name)`
+`syntax: peers, err = upstream.get_backup_peers(upstream_name)`
 
 Get configurations for all the backup peers in the specified upstream group.
 
