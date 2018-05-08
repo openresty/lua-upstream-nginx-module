@@ -109,7 +109,7 @@ Note that implicit upstream groups created by `proxy_pass` and etc are excluded.
 
 get_servers
 -----------
-`syntax: servers = upstream.get_servers(upstream_name)`
+`syntax: servers, err = upstream.get_servers(upstream_name)`
 
 Get configurations for all the servers in the specified upstream group. Please note that one server may take multiple addresses when its server name can be resolved to multiple addresses.
 
