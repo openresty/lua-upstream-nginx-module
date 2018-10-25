@@ -4,7 +4,7 @@ use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 master_on();
-workers(2);
+workers(4);
 #log_level('warn');
 
 repeat_each(2);
@@ -83,11 +83,13 @@ done
     $TEST_NGINX_MY_INIT_CONFIG
 
     upstream foo.com:1234 {
+        zone shared 64k;
         server 127.0.0.1 fail_timeout=53 weight=4 max_fails=100;
         server agentzh.org:81 backup;
     }
 
     upstream bar {
+        zone shared;
         server 127.0.0.2;
     }
 --- config
@@ -120,11 +122,13 @@ failed to get servers: upstream not found
 === TEST 4: sample in README
 --- http_config
     upstream foo.com {
+        zone shared 64k;
         server 127.0.0.1 fail_timeout=53 weight=4 max_fails=100;
         server agentzh.org:81;
     }
 
     upstream bar {
+        zone shared;
         server 127.0.0.2;
     }
 
@@ -190,6 +194,7 @@ upstream bar:
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream test {
+        zone shared 64k;
         server multi-ip-test.openresty.com;
     }
 --- config
@@ -219,6 +224,7 @@ upstream bar:
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream test {
+        zone shared 64k;
         server multi-ip-test.openresty.com;
     }
 --- config
@@ -248,12 +254,14 @@ upstream bar:
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream foo.com:1234 {
+        zone shared 64k;
         server 127.0.0.6 fail_timeout=5 backup;
         server 127.0.0.1 fail_timeout=53 weight=4 max_fails=100;
         server agentzh.org:81;
     }
 
     upstream bar {
+        zone shared;
         server 127.0.0.2;
         server 127.0.0.3 backup;
         server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
@@ -288,12 +296,14 @@ upstream bar:
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream foo.com:1234 {
+        zone shared 64k;
         server 127.0.0.6 fail_timeout=5 backup;
         server 127.0.0.1 fail_timeout=53 weight=4 max_fails=100;
         server agentzh.org:81;
     }
 
     upstream bar {
+        zone shared;
         server 127.0.0.2;
         server 127.0.0.3 backup;
         server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
@@ -328,6 +338,7 @@ upstream bar:
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream bar {
+        zone shared 64k;
         server 127.0.0.2;
         server 127.0.0.3 backup;
         server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
@@ -364,6 +375,7 @@ upstream bar:
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream bar {
+        zone shared 64k;
         server 127.0.0.2;
         server 127.0.0.3 backup;
         server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
@@ -400,6 +412,7 @@ failed to set peer down: bad peer id
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream bar {
+        zone shared 64k;
         server 127.0.0.2;
         server 127.0.0.3 backup;
         server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
@@ -436,6 +449,7 @@ failed to set peer down: bad peer id
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream bar {
+        zone shared 64k;
         server 127.0.0.2;
         server 127.0.0.3 backup;
         server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
@@ -478,6 +492,7 @@ failed to set peer down: bad peer id
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream bar {
+        zone shared 64k;
         server 127.0.0.2;
         server 127.0.0.3 backup;
         server 127.0.0.4 fail_timeout=23 weight=7 max_fails=200 backup;
@@ -511,82 +526,10 @@ failed to set peer down: bad peer id
 
 
 
-=== TEST 14: upstream names with ports (github #2)
---- http_config
---- config
-    location /upstream1 {
-        proxy_pass http://127.0.0.1:1190;
-    }
-
-    location /upstream2{
-        proxy_pass http://127.0.0.2:1110;
-    }
-
-    location /upstream3{
-        proxy_pass http://127.0.0.1:1130;
-    }
-
-    location /t {
-        content_by_lua_block {
-            local concat = table.concat
-            local upstream = require "ngx.upstream"
-            local get_servers = upstream.get_servers
-            local get_upstreams = upstream.get_upstreams
-
-            local us = get_upstreams()
-            for _, u in ipairs(us) do
-                ngx.say("upstream ", u, ":")
-                local srvs, err = get_servers(u)
-                if not srvs then
-                    ngx.say("failed to get servers in upstream ", u)
-                else
-                    for _, srv in ipairs(srvs) do
-                        local first = true
-                        local i = 0
-                        local keys = {}
-                        for k, _ in pairs(srv) do
-                            i = i + 1
-                            keys[i] = k
-                        end
-                        table.sort(keys)
-                        for _, k in ipairs(keys) do
-                            local v = srv[k]
-                            if first then
-                                first = false
-                                ngx.print("    ")
-                            else
-                                ngx.print(", ")
-                            end
-                            if type(v) == "table" then
-                                ngx.print(k, " = {", concat(v, ", "), "}")
-                            else
-                                ngx.print(k, " = ", v)
-                            end
-                        end
-                        ngx.print("\n")
-                    end
-                end
-            end
-        }
-    }
---- request
-    GET /t
---- response_body
-upstream 127.0.0.1:1190:
-    addr = 127.0.0.1:1190, fail_timeout = 0, max_fails = 0, weight = 0
-upstream 127.0.0.2:1110:
-    addr = 127.0.0.2:1110, fail_timeout = 0, max_fails = 0, weight = 0
-upstream 127.0.0.1:1130:
-    addr = 127.0.0.1:1130, fail_timeout = 0, max_fails = 0, weight = 0
-
---- no_error_log
-[error]
-
-
-
-=== TEST 15: upstream_name with valid explicit upstream
+=== TEST 14: upstream_name with valid explicit upstream
 --- http_config
     upstream some_upstream {
+        zone shared 64k;
         server 127.0.0.1:$TEST_NGINX_SERVER_PORT;
     }
 --- config
@@ -607,61 +550,3 @@ ok
 --- log_level: info
 --- error_log eval
 qr/upstream = some_upstream/
-
-
-
-=== TEST 16: upstream_name with valid implicit upstream
---- config
-    log_by_lua_block {
-        local upstream = require "ngx.upstream"
-        ngx.log(ngx.INFO, "upstream = " .. tostring(upstream.current_upstream_name()))
-    }
-    location /test {
-        proxy_pass http://127.0.0.1:$TEST_NGINX_SERVER_PORT/back;
-    }
-    location /back {
-        echo ok;
-    }
---- request
-GET /test
---- response_body
-ok
---- log_level: info
---- error_log eval
-qr/upstream = 127.0.0.1:\d+/
-
-
-
-=== TEST 17: upstream_name with no proxy_pass
---- config
-    log_by_lua_block {
-        local upstream = require "ngx.upstream"
-        ngx.log(ngx.INFO, "upstream = " .. tostring(upstream.current_upstream_name()))
-    }
-    location /test {
-        echo ok;
-    }
---- request
-GET /test
---- response_body
-ok
---- log_level: info
---- error_log eval
-qr/upstream = nil/
-
-
-
-=== TEST 18: upstream_name in content_by_lua
---- config
-    location /test {
-        content_by_lua_block {
-            local upstream = require "ngx.upstream"
-            ngx.say(upstream.current_upstream_name())
-        }
-    }
---- request
-GET /test
---- response_body
-nil
---- no_error_log
-[error]
