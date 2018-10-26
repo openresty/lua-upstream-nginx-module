@@ -190,7 +190,37 @@ upstream bar:
 
 
 
-=== TEST 5: get primary peers
+=== TEST 5: multi-peer servers
+--- http_config
+    $TEST_NGINX_MY_INIT_CONFIG
+    upstream test {
+        zone shared 64k;
+        server multi-ip-test.openresty.com;
+    }
+--- config
+    location /t {
+        content_by_lua '
+            local upstream = require "ngx.upstream"
+            local ljson = require "ljson"
+            local srvs, err = upstream.get_servers("test")
+            if not srvs then
+                ngx.say("failed to get test ", err)
+                return
+            end
+            ngx.say(ljson.encode(srvs))
+        ';
+    }
+--- request
+    GET /t
+--- response_body_like chop
+^\[\{"addr":\["\d{1,3}(?:\.\d{1,3}){3}:80"(?:,"\d{1,3}(?:\.\d{1,3}){3}:80")+\],"fail_timeout":10,"max_fails":1,"name":"multi-ip-test\.openresty\.com","weight":1\}\]$
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 6: get primary peers
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream foo.com:1234 {
@@ -232,7 +262,7 @@ upstream bar:
 
 
 
-=== TEST 6: get backup peers
+=== TEST 7: get backup peers
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream foo.com:1234 {
@@ -274,7 +304,7 @@ upstream bar:
 
 
 
-=== TEST 7: set primary peer down (0)
+=== TEST 8: set primary peer down (0)
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream bar {
@@ -311,7 +341,7 @@ upstream bar:
 
 
 
-=== TEST 8: set primary peer down (1, bad index)
+=== TEST 9: set primary peer down (1, bad index)
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream bar {
@@ -348,7 +378,7 @@ failed to set peer down: bad peer id
 
 
 
-=== TEST 9: set backup peer down (index 0)
+=== TEST 10: set backup peer down (index 0)
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream bar {
@@ -385,7 +415,7 @@ failed to set peer down: bad peer id
 
 
 
-=== TEST 10: set backup peer down (toggle twice, index 0)
+=== TEST 11: set backup peer down (toggle twice, index 0)
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream bar {
@@ -428,7 +458,7 @@ failed to set peer down: bad peer id
 
 
 
-=== TEST 11: set backup peer down (index 1)
+=== TEST 12: set backup peer down (index 1)
 --- http_config
     $TEST_NGINX_MY_INIT_CONFIG
     upstream bar {
@@ -466,7 +496,7 @@ failed to set peer down: bad peer id
 
 
 
-=== TEST 12: upstream_name with valid explicit upstream
+=== TEST 13: upstream_name with valid explicit upstream
 --- http_config
     upstream some_upstream {
         zone shared 64k;
