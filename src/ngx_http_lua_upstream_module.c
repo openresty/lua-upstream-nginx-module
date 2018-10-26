@@ -251,6 +251,7 @@ ngx_http_lua_upstream_get_primary_peers(lua_State * L)
 {
     ngx_str_t                             host;
     ngx_uint_t                            i;
+    ngx_http_upstream_rr_peer_t          *peer;
     ngx_http_upstream_rr_peers_t         *peers;
     ngx_http_upstream_srv_conf_t         *us;
 
@@ -281,8 +282,10 @@ ngx_http_lua_upstream_get_primary_peers(lua_State * L)
     ngx_http_upstream_rr_peers_rlock(peers);
 #endif
 
-    for (i = 0; i < peers->number; i++) {
-        ngx_http_lua_get_peer(L, &peers->peer[i], i);
+    for (i = 0, peer = peers->peer; i < peers->number;
+         i++, peer = peer->next) {
+
+        ngx_http_lua_get_peer(L, peer, i);
         lua_rawseti(L, -2, i + 1);
     }
 
@@ -299,6 +302,7 @@ ngx_http_lua_upstream_get_backup_peers(lua_State * L)
 {
     ngx_str_t                             host;
     ngx_uint_t                            i;
+    ngx_http_upstream_rr_peer_t          *peer;
     ngx_http_upstream_rr_peers_t         *peers;
     ngx_http_upstream_srv_conf_t         *us;
 
@@ -335,8 +339,10 @@ ngx_http_lua_upstream_get_backup_peers(lua_State * L)
     ngx_http_upstream_rr_peers_rlock(peers);
 #endif
 
-    for (i = 0; i < peers->number; i++) {
-        ngx_http_lua_get_peer(L, &peers->peer[i], i);
+    for (i = 0, peer = peers->peer; i < peers->number;
+         i++, peer = peer->next) {
+
+        ngx_http_lua_get_peer(L, peer, i);
         lua_rawseti(L, -2, i + 1);
     }
 
