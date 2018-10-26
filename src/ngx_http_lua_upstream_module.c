@@ -278,9 +278,7 @@ ngx_http_lua_upstream_get_primary_peers(lua_State * L)
 
     lua_createtable(L, peers->number, 0);
 
-#if (NGX_HTTP_UPSTREAM_ZONE)
     ngx_http_upstream_rr_peers_rlock(peers);
-#endif
 
     for (i = 0, peer = peers->peer; i < peers->number;
          i++, peer = peer->next) {
@@ -289,9 +287,7 @@ ngx_http_lua_upstream_get_primary_peers(lua_State * L)
         lua_rawseti(L, -2, i + 1);
     }
 
-#if (NGX_HTTP_UPSTREAM_ZONE)
     ngx_http_upstream_rr_peers_unlock(peers);
-#endif
 
     return 1;
 }
@@ -335,9 +331,7 @@ ngx_http_lua_upstream_get_backup_peers(lua_State * L)
 
     lua_createtable(L, peers->number, 0);
 
-#if (NGX_HTTP_UPSTREAM_ZONE)
     ngx_http_upstream_rr_peers_rlock(peers);
-#endif
 
     for (i = 0, peer = peers->peer; i < peers->number;
          i++, peer = peer->next) {
@@ -346,9 +340,7 @@ ngx_http_lua_upstream_get_backup_peers(lua_State * L)
         lua_rawseti(L, -2, i + 1);
     }
 
-#if (NGX_HTTP_UPSTREAM_ZONE)
     ngx_http_upstream_rr_peers_unlock(peers);
-#endif
 
     return 1;
 }
@@ -382,9 +374,7 @@ ngx_http_lua_upstream_set_peer_down(lua_State * L)
         /*void*/
     }
 
-#if (NGX_HTTP_UPSTREAM_ZONE)
     ngx_http_upstream_rr_peers_wlock(peers);
-#endif
 
     peer->down = lua_toboolean(L, 4);
 
@@ -392,9 +382,7 @@ ngx_http_lua_upstream_set_peer_down(lua_State * L)
         peer->fails = 0;
     }
 
-#if (NGX_HTTP_UPSTREAM_ZONE)
     ngx_http_upstream_rr_peers_unlock(peers);
-#endif
 
     lua_pushboolean(L, 1);
     return 1;
