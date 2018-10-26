@@ -31,8 +31,8 @@ static int ngx_http_lua_get_peer(lua_State *L,
     ngx_http_upstream_rr_peer_t *peer, ngx_uint_t id);
 static ngx_http_upstream_srv_conf_t *
     ngx_http_lua_upstream_find_upstream(lua_State *L, ngx_str_t *host);
-static ngx_http_upstream_rr_peer_t *
-    ngx_http_lua_upstream_lookup_peer(lua_State *L);
+static ngx_http_upstream_rr_peers_t *
+    ngx_http_lua_upstream_lookup_peers(lua_State *L);
 static int ngx_http_lua_upstream_set_peer_down(lua_State * L);
 static int ngx_http_lua_upstream_current_upstream_name(lua_State *L);
 
@@ -357,16 +357,34 @@ ngx_http_lua_upstream_get_backup_peers(lua_State * L)
 static int
 ngx_http_lua_upstream_set_peer_down(lua_State * L)
 {
+    int                                   id, i;
     ngx_http_upstream_rr_peer_t          *peer;
+    ngx_http_upstream_rr_peers_t         *peers;
 
     if (lua_gettop(L) != 4) {
         return luaL_error(L, "exactly 4 arguments expected");
     }
 
-    peer = ngx_http_lua_upstream_lookup_peer(L);
-    if (peer == NULL) {
+    peers = ngx_http_lua_upstream_lookup_peers(L);
+    if (peers == NULL) {
         return 2;
     }
+
+    id = luaL_checkint(L, 3);
+    if (id < 0 || (ngx_uint_t) id >= peers->number) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "bad peer id");
+        return 2;
+    }
+
+    for (i = 0, peer = peers->peer; i < id;
+         i++, peer = peer->next) {
+        /*void*/
+    }
+
+#if (NGX_HTTP_UPSTREAM_ZONE)
+    ngx_http_upstream_rr_peers_wlock(peers);
+#endif
 
     peer->down = lua_toboolean(L, 4);
 
@@ -374,15 +392,19 @@ ngx_http_lua_upstream_set_peer_down(lua_State * L)
         peer->fails = 0;
     }
 
+#if (NGX_HTTP_UPSTREAM_ZONE)
+    ngx_http_upstream_rr_peers_unlock(peers);
+#endif
+
     lua_pushboolean(L, 1);
     return 1;
 }
 
 
-static ngx_http_upstream_rr_peer_t *
-ngx_http_lua_upstream_lookup_peer(lua_State *L)
+static ngx_http_upstream_rr_peers_t *
+ngx_http_lua_upstream_lookup_peers(lua_State *L)
 {
-    int                                   id, backup;
+    int                                   backup;
     ngx_str_t                             host;
     ngx_http_upstream_srv_conf_t         *us;
     ngx_http_upstream_rr_peers_t         *peers;
@@ -415,14 +437,7 @@ ngx_http_lua_upstream_lookup_peer(lua_State *L)
         return NULL;
     }
 
-    id = luaL_checkint(L, 3);
-    if (id < 0 || (ngx_uint_t) id >= peers->number) {
-        lua_pushnil(L);
-        lua_pushliteral(L, "bad peer id");
-        return NULL;
-    }
-
-    return &peers->peer[id];
+    return peers;
 }
 
 
