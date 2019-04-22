@@ -106,7 +106,7 @@ done
 --- request
     GET /t
 --- response_body
-foo.com:1234: [{"addr":"127.0.0.1:80","fail_timeout":53,"max_fails":100,"name":"127.0.0.1","weight":4},{"addr":"172.105.207.225:81","backup":true,"fail_timeout":10,"max_fails":1,"name":"agentzh.org:81","weight":1}]
+foo.com:1234: [{"addr":"127.0.0.1:80","fail_timeout":53,"max_fails":100,"name":"127.0.0.1","weight":4},{"addr":"138.68.231.133:81","backup":true,"fail_timeout":10,"max_fails":1,"name":"agentzh.org:81","weight":1}]
 bar: [{"addr":"127.0.0.2:80","fail_timeout":10,"max_fails":1,"name":"127.0.0.2","weight":1}]
 failed to get servers: upstream not found
 
@@ -176,7 +176,7 @@ failed to get servers: upstream not found
 --- response_body
 upstream foo.com:
     addr = 127.0.0.1:80, fail_timeout = 53, max_fails = 100, name = 127.0.0.1, weight = 4
-    addr = 172.105.207.225:81, fail_timeout = 10, max_fails = 1, name = agentzh.org:81, weight = 1
+    addr = 138.68.231.133:81, fail_timeout = 10, max_fails = 1, name = agentzh.org:81, weight = 1
 upstream bar:
     addr = 127.0.0.2:80, fail_timeout = 10, max_fails = 1, name = 127.0.0.2, weight = 1
 --- no_error_log
@@ -275,7 +275,7 @@ upstream bar:
 --- request
     GET /t
 --- response_body
-[{"conns":0,"current_weight":0,"effective_weight":4,"fail_timeout":53,"fails":0,"id":0,"max_fails":100,"name":"127.0.0.1:80","weight":4},{"conns":0,"current_weight":0,"effective_weight":1,"fail_timeout":10,"fails":0,"id":1,"max_fails":1,"name":"172.105.207.225:81","weight":1}]
+[{"conns":0,"current_weight":0,"effective_weight":4,"fail_timeout":53,"fails":0,"id":0,"max_fails":100,"name":"127.0.0.1:80","weight":4},{"conns":0,"current_weight":0,"effective_weight":1,"fail_timeout":10,"fails":0,"id":1,"max_fails":1,"name":"138.68.231.133:81","weight":1}]
 [{"conns":0,"current_weight":0,"effective_weight":1,"fail_timeout":10,"fails":0,"id":0,"max_fails":1,"name":"127.0.0.2:80","weight":1}]
 --- no_error_log
 [error]
