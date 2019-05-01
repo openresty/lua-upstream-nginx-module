@@ -105,11 +105,11 @@ done
     }
 --- request
     GET /t
---- response_body
-foo.com:1234: [{"addr":"127.0.0.1:80","fail_timeout":53,"max_fails":100,"name":"127.0.0.1","weight":4},{"addr":"138.68.231.133:81","backup":true,"fail_timeout":10,"max_fails":1,"name":"agentzh.org:81","weight":1}]
-bar: [{"addr":"127.0.0.2:80","fail_timeout":10,"max_fails":1,"name":"127.0.0.2","weight":1}]
+--- response_body_like chomp
+\Afoo\.com:1234: \[\{"addr":"127\.0\.0\.1:80","fail_timeout":53,"max_fails":100,"name":"127\.0\.0\.1","weight":4\},\{"addr":(?:\[?"\d+\.\d+\.\d+\.\d+:81",?\]?)+,"backup":true,"fail_timeout":10,"max_fails":1,"name":"agentzh\.org:81","weight":1\}\]
+bar: \[\{"addr":"127\.0\.0\.2:80","fail_timeout":10,"max_fails":1,"name":"127\.0\.0\.2","weight":1\}\]
 failed to get servers: upstream not found
-
+\z
 --- no_error_log
 [error]
 
@@ -173,12 +173,13 @@ failed to get servers: upstream not found
     }
 --- request
     GET /upstreams
---- response_body
-upstream foo.com:
-    addr = 127.0.0.1:80, fail_timeout = 53, max_fails = 100, name = 127.0.0.1, weight = 4
-    addr = 138.68.231.133:81, fail_timeout = 10, max_fails = 1, name = agentzh.org:81, weight = 1
+--- response_body_like chomp
+\Aupstream foo\.com:
+    addr = 127\.0\.0\.1:80, fail_timeout = 53, max_fails = 100, name = 127\.0\.0\.1, weight = 4
+    addr = \{?(?:\d+\.\d+\.\d+\.\d+:81(?:,\s)?)+\}?, fail_timeout = 10, max_fails = 1, name = agentzh\.org:81, weight = 1
 upstream bar:
-    addr = 127.0.0.2:80, fail_timeout = 10, max_fails = 1, name = 127.0.0.2, weight = 1
+    addr = 127\.0\.0\.2:80, fail_timeout = 10, max_fails = 1, name = 127\.0\.0\.2, weight = 1
+\z
 --- no_error_log
 [error]
 
@@ -274,9 +275,10 @@ upstream bar:
     }
 --- request
     GET /t
---- response_body
-[{"conns":0,"current_weight":0,"effective_weight":4,"fail_timeout":53,"fails":0,"id":0,"max_fails":100,"name":"127.0.0.1:80","weight":4},{"conns":0,"current_weight":0,"effective_weight":1,"fail_timeout":10,"fails":0,"id":1,"max_fails":1,"name":"138.68.231.133:81","weight":1}]
-[{"conns":0,"current_weight":0,"effective_weight":1,"fail_timeout":10,"fails":0,"id":0,"max_fails":1,"name":"127.0.0.2:80","weight":1}]
+--- response_body_like chomp
+\A\[\{"conns":0,"current_weight":0,"effective_weight":4,"fail_timeout":53,"fails":0,"id":0,"max_fails":100,"name":"127\.0\.0\.1:80","weight":4\},(?:\{"conns":0,"current_weight":0,"effective_weight":1,"fail_timeout":10,"fails":0,"id":\d+,"max_fails":1,"name":"\d+\.\d+\.\d+\.\d+:81","weight":1\},?)+\]
+\[\{"conns":0,"current_weight":0,"effective_weight":1,"fail_timeout":10,"fails":0,"id":0,"max_fails":1,"name":"127\.0\.0\.2:80","weight":1\}\]
+\z
 --- no_error_log
 [error]
 
