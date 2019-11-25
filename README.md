@@ -123,6 +123,7 @@ The return value is an array-like Lua table. Each table entry is a hash-like Lua
 * max_fails
 * name
 * weight
+* down
 
 [Back to TOC](#table-of-contents)
 
