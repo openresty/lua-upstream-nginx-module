@@ -24,7 +24,6 @@ addons:
 
 compiler:
   - gcc
-  - clang
 
 env:
   global:
@@ -37,8 +36,8 @@ env:
     - JOBS=3
     - NGX_BUILD_JOBS=$JOBS
   matrix:
-    - NGINX_VERSION=1.11.2
-    - NGINX_VERSION=1.19.3
+    - NGINX_VERSION=1.17.8
+    - NGINX_VERSION=1.19.9
 
 services:
  - redis-server
