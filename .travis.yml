@@ -1,5 +1,5 @@
 sudo: required
-dist: bionic
+dist: focal
 
 os: linux
 
@@ -35,8 +35,8 @@ env:
     - JOBS=3
     - NGX_BUILD_JOBS=$JOBS
   matrix:
-    - NGINX_VERSION=1.17.8
-    - NGINX_VERSION=1.19.9
+    - NGINX_VERSION=1.21.4
+    - NGINX_VERSION=1.25.1
 
 services:
  - redis-server

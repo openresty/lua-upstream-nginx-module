@@ -35,10 +35,20 @@ fi
 # we ignore any errors here since the target directory might have already been patched.
 patch -p1 < $patch_file || exit 1
 
+patch_file=$root/../openresty/patches/ngx_http_redis-$ngx_redis_version-remove_content_encoding.patch
+answer=`$root/util/ver-ge "$main_ver" 1.23.0`
+if [ "$answer" = "Y" ]; then
+    echo
+    echo "applying ngx_http_redis-$ver-remove_content_encoding.patch"
+    patch -p1 < $patch_file || exit 1
+    echo
+fi
+
 cd $root || exit 1
 
             #--without-http_memcached_module \
 ngx-build $force $version \
+            --without-pcre2 \
             --with-cc-opt="-O0" \
             --with-ld-opt="-Wl,-rpath,/opt/postgres/lib:/opt/drizzle/lib:/usr/local/lib" \
             --without-mail_pop3_module \
