@@ -58,7 +58,6 @@ install:
   - git clone https://github.com/openresty/nginx-eval-module.git ../eval-nginx-module
   - git clone https://github.com/openresty/echo-nginx-module.git ../echo-nginx-module
   - git clone https://github.com/openresty/set-misc-nginx-module.git ../set-misc-nginx-module
-  - git clone https://github.com/openresty/openresty.git ../ngx_openresty
 
 script:
   - cd luajit2

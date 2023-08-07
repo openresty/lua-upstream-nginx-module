@@ -36,7 +36,7 @@ fi
 patch -p1 < $patch_file || exit 1
 
 patch_file=$root/../openresty/patches/ngx_http_redis-$ngx_redis_version-remove_content_encoding.patch
-answer=`$root/util/ver-ge "$main_ver" 1.23.0`
+answer=`$root/../openresty/util/ver-ge "$main_ver" 1.23.0`
 if [ "$answer" = "Y" ]; then
     echo
     echo "applying ngx_http_redis-$ver-remove_content_encoding.patch"
@@ -46,9 +46,14 @@ fi
 
 cd $root || exit 1
 
+disable_pcre2=--without-pcre2;
+answer=`$root/../openresty/util/ver-ge "$NGINX_VERSION" 1.25.1`;
+if [ "$answer" = "N" ]; then
+    disable_pcre2="";
+fi;
             #--without-http_memcached_module \
 ngx-build $force $version \
-            --without-pcre2 \
+            $disable_pcre2 \
             --with-cc-opt="-O0" \
             --with-ld-opt="-Wl,-rpath,/opt/postgres/lib:/opt/drizzle/lib:/usr/local/lib" \
             --without-mail_pop3_module \
