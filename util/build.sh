@@ -47,7 +47,7 @@ fi
 cd $root || exit 1
 
 disable_pcre2=--without-pcre2;
-answer=`$root/../openresty/util/ver-ge "$NGINX_VERSION" 1.25.1`;
+answer=`$root/../openresty/util/ver-ge "$version" 1.25.1`;
 if [ "$answer" = "N" ]; then
     disable_pcre2="";
 fi;
