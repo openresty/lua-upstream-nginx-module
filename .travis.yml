@@ -1,5 +1,5 @@
 sudo: required
-dist: bionic
+dist: focal
 
 os: linux
 
@@ -35,8 +35,8 @@ env:
     - JOBS=3
     - NGX_BUILD_JOBS=$JOBS
   matrix:
-    - NGINX_VERSION=1.17.8
-    - NGINX_VERSION=1.19.9
+    - NGINX_VERSION=1.21.4
+    - NGINX_VERSION=1.25.1
 
 services:
  - redis-server
@@ -44,8 +44,8 @@ services:
 install:
   - echo $HOME
   - if [ ! -d download-cache ]; then mkdir download-cache; fi
-  - if [ ! -f download-cache/ngx_http_redis-0.3.7.tar.gz ]; then wget -O download-cache/ngx_http_redis-0.3.7.tar.gz http://people.freebsd.org/~osa/ngx_http_redis-0.3.7.tar.gz; fi
-  - mkdir -p ~/work/nginx && cp download-cache/ngx_http_redis-0.3.7.tar.gz ~/work/nginx/
+  - if [ ! -f download-cache/ngx_http_redis-0.3.9.tar.gz ]; then wget -O download-cache/ngx_http_redis-0.3.9.tar.gz http://people.freebsd.org/~osa/ngx_http_redis-0.3.9.tar.gz; fi
+  - mkdir -p ~/work/nginx && cp download-cache/ngx_http_redis-0.3.9.tar.gz ~/work/nginx/
   - git clone https://github.com/openresty/nginx-devel-utils.git
   - git clone https://github.com/openresty/openresty.git ../openresty
   - git clone https://github.com/openresty/no-pool-nginx.git ../no-pool-nginx
@@ -58,7 +58,6 @@ install:
   - git clone https://github.com/openresty/nginx-eval-module.git ../eval-nginx-module
   - git clone https://github.com/openresty/echo-nginx-module.git ../echo-nginx-module
   - git clone https://github.com/openresty/set-misc-nginx-module.git ../set-misc-nginx-module
-  - git clone https://github.com/openresty/openresty.git ../ngx_openresty
 
 script:
   - cd luajit2
