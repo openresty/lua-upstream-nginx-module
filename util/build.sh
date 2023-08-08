@@ -35,11 +35,11 @@ fi
 # we ignore any errors here since the target directory might have already been patched.
 patch -p1 < $patch_file || exit 1
 
-disable_pcre2=--without-pcre2;
+disable_pcre2="";
 patch_file=$root/../openresty/patches/ngx_http_redis-$ngx_redis_version-remove_content_encoding.patch
 answer=`$root/../openresty/util/ver-ge "$version" 1.23.0`
 if [ "$answer" = "Y" ]; then
-    disable_pcre2="";
+    disable_pcre2=--without-pcre2;
     echo
     echo "applying ngx_http_redis-$ver-remove_content_encoding.patch"
     patch -p1 < $patch_file || exit 1
