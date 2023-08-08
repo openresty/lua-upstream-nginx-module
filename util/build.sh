@@ -2,7 +2,7 @@
 
 # this file is mostly meant to be used by the author himself.
 
-#set -x
+set -x
 
 root=`pwd`
 version=$1
