@@ -46,11 +46,8 @@ services:
  - redis-server
 
 install:
-  - echo $HOME
-  - if [ ! -d download-cache ]; then mkdir download-cache; fi
-  - if [ ! -f download-cache/ngx_http_redis-0.3.9.tar.gz ]; then wget -O download-cache/ngx_http_redis-0.3.9.tar.gz http://people.freebsd.org/~osa/ngx_http_redis-0.3.9.tar.gz; fi
-  - mkdir -p ~/work/nginx && cp download-cache/ngx_http_redis-0.3.9.tar.gz ~/work/nginx/
   - git clone https://github.com/openresty/nginx-devel-utils.git
+  - git clone https://github.com/openresty/ngx_http_redis.git ../ngx_http_redis
   - git clone https://github.com/openresty/openresty.git ../openresty
   - git clone https://github.com/openresty/no-pool-nginx.git ../no-pool-nginx
   - git clone https://github.com/simpl/ngx_devel_kit.git ../ndk-nginx-module
