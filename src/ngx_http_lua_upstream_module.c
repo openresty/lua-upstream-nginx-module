@@ -252,6 +252,7 @@ ngx_http_lua_upstream_get_primary_peers(lua_State * L)
     ngx_str_t                             host;
     ngx_uint_t                            i;
     ngx_http_upstream_rr_peers_t         *peers;
+    ngx_http_upstream_rr_peer_t          *peer;
     ngx_http_upstream_srv_conf_t         *us;
 
     if (lua_gettop(L) != 1) {
@@ -277,9 +278,11 @@ ngx_http_lua_upstream_get_primary_peers(lua_State * L)
 
     lua_createtable(L, peers->number, 0);
 
-    for (i = 0; i < peers->number; i++) {
-        ngx_http_lua_get_peer(L, &peers->peer[i], i);
+    i = 0;
+    for (peer = peers->peer; peer != NULL; peer = peer->next) {
+        ngx_http_lua_get_peer(L, peer, i);
         lua_rawseti(L, -2, i + 1);
+        i++;
     }
 
     return 1;
@@ -292,6 +295,7 @@ ngx_http_lua_upstream_get_backup_peers(lua_State * L)
     ngx_str_t                             host;
     ngx_uint_t                            i;
     ngx_http_upstream_rr_peers_t         *peers;
+    ngx_http_upstream_rr_peer_t          *peer;
     ngx_http_upstream_srv_conf_t         *us;
 
     if (lua_gettop(L) != 1) {
@@ -323,9 +327,11 @@ ngx_http_lua_upstream_get_backup_peers(lua_State * L)
 
     lua_createtable(L, peers->number, 0);
 
-    for (i = 0; i < peers->number; i++) {
-        ngx_http_lua_get_peer(L, &peers->peer[i], i);
+    i = 0;
+    for (peer = peers->peer; peer != NULL; peer = peer->next) {
+        ngx_http_lua_get_peer(L, peer, i);
         lua_rawseti(L, -2, i + 1);
+        i++;
     }
 
     return 1;
@@ -360,9 +366,10 @@ ngx_http_lua_upstream_set_peer_down(lua_State * L)
 static ngx_http_upstream_rr_peer_t *
 ngx_http_lua_upstream_lookup_peer(lua_State *L)
 {
-    int                                   id, backup;
+    int                                   id, backup, i;
     ngx_str_t                             host;
     ngx_http_upstream_srv_conf_t         *us;
+    ngx_http_upstream_rr_peer_t          *peer;
     ngx_http_upstream_rr_peers_t         *peers;
 
     host.data = (u_char *) luaL_checklstring(L, 1, &host.len);
@@ -400,7 +407,12 @@ ngx_http_lua_upstream_lookup_peer(lua_State *L)
         return NULL;
     }
 
-    return &peers->peer[id];
+    peer = peers->peer;
+    for (i = 0; i < id; i++) {
+        peer = peer->next;
+    }
+
+    return peer;
 }
 
 
