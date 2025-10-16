@@ -35,6 +35,9 @@ static ngx_http_upstream_rr_peer_t *
     ngx_http_lua_upstream_lookup_peer(lua_State *L);
 static int ngx_http_lua_upstream_set_peer_down(lua_State * L);
 static int ngx_http_lua_upstream_current_upstream_name(lua_State *L);
+static int ngx_http_lua_upstream_set_peer_weight(lua_State * L);
+static int ngx_http_lua_upstream_set_peer_current_weight(lua_State * L);
+static int ngx_http_lua_upstream_set_peer_effective_weight(lua_State * L);
 
 
 static ngx_http_module_t ngx_http_lua_upstream_ctx = {
@@ -101,6 +104,15 @@ ngx_http_lua_upstream_create_module(lua_State * L)
 
     lua_pushcfunction(L, ngx_http_lua_upstream_current_upstream_name);
     lua_setfield(L, -2, "current_upstream_name");
+
+    lua_pushcfunction(L, ngx_http_lua_upstream_set_peer_weight);
+    lua_setfield(L, -2, "set_peer_weight");
+
+    lua_pushcfunction(L, ngx_http_lua_upstream_set_peer_current_weight);
+    lua_setfield(L, -2, "set_peer_current_weight");
+
+    lua_pushcfunction(L, ngx_http_lua_upstream_set_peer_effective_weight);
+    lua_setfield(L, -2, "set_peer_effective_weight");
 
     return 1;
 }
@@ -351,6 +363,66 @@ ngx_http_lua_upstream_set_peer_down(lua_State * L)
     if (!peer->down) {
         peer->fails = 0;
     }
+
+    lua_pushboolean(L, 1);
+    return 1;
+}
+
+static int
+ngx_http_lua_upstream_set_peer_weight(lua_State * L)
+{
+    ngx_http_upstream_rr_peer_t          *peer;
+
+    if (lua_gettop(L) != 4) {
+        return luaL_error(L, "exactly 4 arguments expected");
+    }
+
+    peer = ngx_http_lua_upstream_lookup_peer(L);
+    if (peer == NULL) {
+        return 2;
+    }
+
+    peer->weight = lua_tointeger(L, 4);
+
+    lua_pushboolean(L, 1);
+    return 1;
+}
+
+static int
+ngx_http_lua_upstream_set_peer_current_weight(lua_State * L)
+{
+    ngx_http_upstream_rr_peer_t          *peer;
+
+    if (lua_gettop(L) != 4) {
+        return luaL_error(L, "exactly 4 arguments expected");
+    }
+
+    peer = ngx_http_lua_upstream_lookup_peer(L);
+    if (peer == NULL) {
+        return 2;
+    }
+
+    peer->current_weight = lua_tointeger(L, 4);
+
+    lua_pushboolean(L, 1);
+    return 1;
+}
+
+static int
+ngx_http_lua_upstream_set_peer_effective_weight(lua_State * L)
+{
+    ngx_http_upstream_rr_peer_t          *peer;
+
+    if (lua_gettop(L) != 4) {
+        return luaL_error(L, "exactly 4 arguments expected");
+    }
+
+    peer = ngx_http_lua_upstream_lookup_peer(L);
+    if (peer == NULL) {
+        return 2;
+    }
+
+    peer->effective_weight = lua_tointeger(L, 4);
 
     lua_pushboolean(L, 1);
     return 1;
