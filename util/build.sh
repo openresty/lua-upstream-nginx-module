@@ -9,17 +9,10 @@ version=$1
 home=~
 force=$2
 
-disable_pcre2="";
-answer=`$root/../openresty/util/ver-ge "$version" 1.23.0`
-if [ "$answer" = "Y" ]; then
-    disable_pcre2=--without-pcre2;
-fi
-
 cd $root || exit 1
 
             #--without-http_memcached_module \
 ngx-build $force $version \
-            $disable_pcre2 \
             --with-cc-opt="-O0" \
             --with-ld-opt="-Wl,-rpath,/opt/postgres/lib:/opt/drizzle/lib:/usr/local/lib" \
             --without-mail_pop3_module \
