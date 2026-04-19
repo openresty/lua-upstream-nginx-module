@@ -20,6 +20,7 @@ addons:
     - axel
     - libtest-base-perl
     - libtext-diff-perl
+    - cpanminus
     - liburi-perl
     - libwww-perl
     - libtest-longstring-perl
