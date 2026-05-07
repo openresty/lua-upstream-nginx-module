@@ -40,7 +40,7 @@ env:
     - JOBS=3
     - NGX_BUILD_JOBS=$JOBS
   matrix:
-    - NGINX_VERSION=1.29.4
+    - NGINX_VERSION=1.29.8
 
 services:
  - redis-server
@@ -66,6 +66,7 @@ script:
   - sudo make install PREFIX=$LUAJIT_PREFIX > build.log 2>&1 || (cat build.log && exit 1)
   - cd ..
   - cpanm --sudo --notest --reinstall Test::Simple
+  - cpanm --sudo --notest Test::Nginx IPC::Run Test2::Util > build.log 2>&1 || (cat build.log && exit 1)
   - cpanm --sudo --verbose ./test-nginx
   - export PATH=$PWD/work/nginx/sbin:$PWD/nginx-devel-utils:$PATH
   - export NGX_BUILD_CC=$CC
