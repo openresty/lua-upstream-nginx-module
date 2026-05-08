@@ -665,3 +665,30 @@ GET /test
 nil
 --- no_error_log
 [error]
+
+=== TEST 19: upstream_name with valid explicit upstream set by variable
+--- http_config
+    upstream some_upstream {
+        server 127.0.0.1:$TEST_NGINX_SERVER_PORT;
+    }
+    map $host $backend_http {
+      default "http";
+    }
+--- config
+    log_by_lua_block {
+        local upstream = require "ngx.upstream"
+        ngx.log(ngx.INFO, "upstream = " .. tostring(upstream.current_upstream_name()))
+    }
+    location /test {
+        proxy_pass $backend_http://some_upstream/back;
+    }
+    location /back {
+        echo ok;
+    }
+--- request
+GET /test
+--- response_body
+ok
+--- log_level: info
+--- error_log eval
+qr/upstream = some_upstream/
